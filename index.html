@@ -460,13 +460,14 @@ a{color:inherit;text-decoration:none}
     <!-- REPORTS -->
     <div class="view" id="view-reports">
       <div class="topbar">
-        <div><h2>Hesabat</h2><div class="sub">Gəlir və xərc hesabatı</div></div>
-        <button class="btn btn-lav no-print" onclick="window.print()">🖨️ Hesabatı çıxar</button>
+        <div><h2>Hesabat</h2><div class="sub">Gəlir, xərc və əməkdaş ödənişləri hesabatı</div></div>
+        <button class="btn btn-lav no-print" onclick="printReportSummary()">🖨️ Ümumi xülasəni çap et</button>
       </div>
       <div class="period-tabs no-print">
         <button class="tab-btn active" data-period="today" onclick="setReportPeriod('today')">Bu gün</button>
         <button class="tab-btn" data-period="week" onclick="setReportPeriod('week')">Bu həftə</button>
         <button class="tab-btn" data-period="month" onclick="setReportPeriod('month')">Bu ay</button>
+        <button class="tab-btn" data-period="year" onclick="setReportPeriod('year')">Bu il</button>
         <button class="tab-btn" data-period="all" onclick="setReportPeriod('all')">Bütün vaxt</button>
         <button class="tab-btn" data-period="custom" onclick="setReportPeriod('custom')">Xüsusi aralıq</button>
       </div>
@@ -474,22 +475,41 @@ a{color:inherit;text-decoration:none}
         <div class="field"><label>Başlanğıc</label><input type="date" id="repStart" onchange="renderReports()"></div>
         <div class="field"><label>Son</label><input type="date" id="repEnd" onchange="renderReports()"></div>
       </div>
-      <div class="stats">
-        <div class="stat-card success"><div class="n mono" id="repIncome">0 ₼</div><div class="l">Daxil olan gəlir</div></div>
-        <div class="stat-card amber"><div class="n mono" id="repOwedIncome">0 ₼</div><div class="l">Gözlənilən gəlir</div></div>
-        <div class="stat-card danger"><div class="n mono" id="repExpense">0 ₼</div><div class="l">Ümumi xərc</div></div>
-        <div class="stat-card teal"><div class="n mono" id="repNet">0 ₼</div><div class="l">Xalis mənfəət</div></div>
+      <div class="field no-print" style="max-width:320px">
+        <label>🩺 Əməkdaş üzrə filtr</label>
+        <select id="repStaffFilter" onchange="renderReports()"><option value="">Bütün əməkdaşlar</option></select>
       </div>
+
       <div class="panel">
-        <div class="panel-head"><h3>🧾 Xərclər — kateqoriya üzrə</h3></div>
+        <div class="panel-head"><h3>💰 Ümumi xülasə</h3><button class="btn btn-outline btn-sm no-print" onclick="printReportSummary()">🖨️ Bu bölməni çap et</button></div>
+        <div class="stats" style="margin-bottom:0">
+          <div class="stat-card success"><div class="n mono" id="repIncome">0 ₼</div><div class="l">Daxil olan gəlir</div></div>
+          <div class="stat-card amber"><div class="n mono" id="repOwedIncome">0 ₼</div><div class="l">Gözlənilən gəlir</div></div>
+          <div class="stat-card danger"><div class="n mono" id="repExpense">0 ₼</div><div class="l">Ümumi xərc</div></div>
+          <div class="stat-card teal"><div class="n mono" id="repNet">0 ₼</div><div class="l">Xalis mənfəət</div></div>
+        </div>
+      </div>
+
+      <div class="panel" id="repStaffSingleCard" style="display:none">
+        <div class="panel-head"><h3 id="repStaffSingleTitle">🩺 Əməkdaş xülasəsi</h3><button class="btn btn-outline btn-sm no-print" onclick="printStaffSummary()">🖨️ Bu bölməni çap et</button></div>
+        <div class="stats" style="margin-bottom:0">
+          <div class="stat-card teal"><div class="n" id="repStaffSessions">0</div><div class="l">Seans sayı</div></div>
+          <div class="stat-card amber"><div class="n mono" id="repStaffEarned">0 ₼</div><div class="l">Qazandığı (seanslara görə)</div></div>
+          <div class="stat-card success"><div class="n mono" id="repStaffPaid">0 ₼</div><div class="l">Ödənilib</div></div>
+          <div class="stat-card danger"><div class="n mono" id="repStaffOwed">0 ₼</div><div class="l">Qalan borc</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>🧾 Xərclər — kateqoriya üzrə</h3><button class="btn btn-outline btn-sm no-print" onclick="printReportBlock('Xərclər — kateqoriya üzrə', document.getElementById('repExpenseTable').outerHTML)">🖨️ Bu bölməni çap et</button></div>
         <table class="report-table" id="repExpenseTable"><thead><tr><th>Kateqoriya</th><th>Məbləğ</th></tr></thead><tbody></tbody></table>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>🩺 Əməkdaşlara ödənişlər</h3></div>
+        <div class="panel-head"><h3 id="repStaffTableTitle">🩺 Əməkdaşlara ödənişlər</h3><button class="btn btn-outline btn-sm no-print" onclick="printReportBlock(document.getElementById('repStaffTableTitle').textContent.trim(), document.getElementById('repStaffTable').outerHTML)">🖨️ Bu bölməni çap et</button></div>
         <table class="report-table" id="repStaffTable"><thead><tr><th>Əməkdaş</th><th>Seans sayı</th><th>Ödənilib</th></tr></thead><tbody></tbody></table>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>🧑‍🤝‍🧑 Pasiyent ödənişləri</h3></div>
+        <div class="panel-head"><h3>🧑‍🤝‍🧑 Pasiyent ödənişləri</h3><button class="btn btn-outline btn-sm no-print" onclick="printReportBlock('Pasiyent ödənişləri', document.getElementById('repPatientTable').outerHTML)">🖨️ Bu bölməni çap et</button></div>
         <table class="report-table" id="repPatientTable"><thead><tr><th>Pasiyent</th><th>Tarix</th><th>Məbləğ</th><th>Status</th></tr></thead><tbody></tbody></table>
       </div>
     </div>
@@ -1334,23 +1354,46 @@ window.renderExpenses = function(){
 let reportPeriod = 'today';
 window.setReportPeriod = function(p){
   reportPeriod = p;
-  document.querySelectorAll('#view-reports .tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`#view-reports .tab-btn[data-period="${p}"]`).classList.add('active');
+  document.querySelectorAll('#view-reports .period-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-reports .period-tabs .tab-btn[data-period="${p}"]`).classList.add('active');
   document.getElementById('customRangeBox').style.display = p==='custom' ? 'grid' : 'none';
   if(p==='custom' && !repStart.value){ const [s,e]=monthRangeISO(); repStart.value=s; repEnd.value=e; }
   renderReports();
+}
+function yearRangeISO(){
+  const y = new Date().getFullYear();
+  return [`${y}-01-01`, `${y}-12-31`];
 }
 function getReportRange(){
   const today = todayISO();
   if(reportPeriod==='today') return [today, today];
   if(reportPeriod==='week'){ const [m,s]=weekRange(); return [m.toISOString().slice(0,10), s.toISOString().slice(0,10)]; }
   if(reportPeriod==='month') return monthRangeISO();
+  if(reportPeriod==='year') return yearRangeISO();
   if(reportPeriod==='custom') return [repStart.value||'0000-01-01', repEnd.value||'9999-12-31'];
   return ['0000-01-01','9999-12-31']; // all
 }
 function inRange(dateStr, start, end){ return dateStr && dateStr>=start && dateStr<=end; }
+function reportPeriodLabel(){
+  const btn = document.querySelector('#view-reports .period-tabs .tab-btn.active');
+  let base = btn ? btn.textContent.trim() : '';
+  if(reportPeriod==='custom'){ const [s,e]=getReportRange(); base = `${fmtDate(s)} — ${fmtDate(e)}`; }
+  return base;
+}
+function fillStaffFilterSelect(){
+  const sel = document.getElementById('repStaffFilter');
+  if(!sel) return;
+  const current = sel.value;
+  const opts = Object.entries(window.DB.staff||{}).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
+    .map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('');
+  sel.innerHTML = `<option value="">Bütün əməkdaşlar</option>` + opts;
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
 window.renderReports = function(){
+  fillStaffFilterSelect();
   const [start, end] = getReportRange();
+  const staffFilter = document.getElementById('repStaffFilter')?.value || '';
+
   const pays = Object.entries(window.DB.payments).filter(([id,p])=>inRange(p.date,start,end));
   const income = pays.filter(([id,p])=>p.status!=='owed').reduce((s,[id,p])=>s+Number(p.amount||0),0);
   const owedIncome = pays.filter(([id,p])=>p.status==='owed').reduce((s,[id,p])=>s+Number(p.amount||0),0);
@@ -1372,13 +1415,32 @@ window.renderReports = function(){
   const catRows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   document.querySelector('#repExpenseTable tbody').innerHTML = catRows.length ? catRows.map(([cat,amt])=>`<tr><td>${cat}</td><td class="mono">${amt.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="2" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə xərc qeydə alınmayıb</td></tr>`;
 
-  // staff sessions/payments in range
-  const staffRows = Object.entries(window.DB.staff).map(([sid,s])=>{
-    const cnt = Object.values(window.DB.sessions).filter(x=>x.staffId===sid && inRange(x.date,start,end)).length;
+  // staff sessions/payments in range (filtrə uyğun)
+  const allStaffEntries = staffFilter ? Object.entries(window.DB.staff).filter(([sid])=>sid===staffFilter) : Object.entries(window.DB.staff);
+  const staffRows = allStaffEntries.map(([sid,s])=>{
+    const staffSessions = Object.values(window.DB.sessions).filter(x=>x.staffId===sid && inRange(x.date,start,end));
+    const cnt = staffSessions.length;
+    const earned = staffSessions.reduce((sum,x)=>sum+Number(x.staffFee||0),0);
     const paid = staffPays.filter(([id,p])=>p.staffId===sid).reduce((sum,[id,p])=>sum+Number(p.amount||0),0);
-    return {name:s.name, cnt, paid};
-  }).filter(r=>r.cnt>0 || r.paid>0).sort((a,b)=>b.cnt-a.cnt);
+    return {sid, name:s.name, cnt, earned, paid};
+  }).filter(r=>r.cnt>0 || r.paid>0 || staffFilter).sort((a,b)=>b.cnt-a.cnt);
+  document.getElementById('repStaffTableTitle').textContent = staffFilter ? ('🩺 Ödənişlər — ' + (window.DB.staff[staffFilter]?.name||'')) : '🩺 Əməkdaşlara ödənişlər';
   document.querySelector('#repStaffTable tbody').innerHTML = staffRows.length ? staffRows.map(r=>`<tr><td>${r.name}</td><td>${r.cnt}</td><td class="mono">${r.paid.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="3" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə məlumat yoxdur</td></tr>`;
+
+  // tək əməkdaş xülasə kartı
+  const singleCard = document.getElementById('repStaffSingleCard');
+  if(staffFilter && window.DB.staff[staffFilter]){
+    const r = staffRows[0] || {cnt:0, earned:0, paid:0};
+    const s = window.DB.staff[staffFilter];
+    document.getElementById('repStaffSingleTitle').textContent = '🩺 ' + s.name + ' — xülasə';
+    document.getElementById('repStaffSessions').textContent = r.cnt;
+    document.getElementById('repStaffEarned').textContent = r.earned.toFixed(2)+' ₼';
+    document.getElementById('repStaffPaid').textContent = r.paid.toFixed(2)+' ₼';
+    document.getElementById('repStaffOwed').textContent = Math.max(0, r.earned - r.paid).toFixed(2)+' ₼';
+    singleCard.style.display = 'block';
+  } else {
+    singleCard.style.display = 'none';
+  }
 
   // patient payments table
   const patRows = pays.sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
@@ -1386,6 +1448,63 @@ window.renderReports = function(){
     const pat = window.DB.patients[p.patientId];
     return `<tr><td>${pat?.name||'-'}</td><td>${fmtDate(p.date)}</td><td class="mono">${Number(p.amount||0).toFixed(2)} ₼</td><td><span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span></td></tr>`;
   }).join('') : `<tr><td colspan="4" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə ödəniş yoxdur</td></tr>`;
+}
+
+/* ============ HESABAT ÇAPI ============ */
+window.printReportBlock = function(title, innerHtml){
+  const logoUrl = new URL('logo.png', window.location.href).href;
+  const win = window.open('', '_blank', 'width=650,height=800');
+  if(!win){ toast('Pəncərə açıla bilmədi — brauzer bloklayıb ola bilər'); return; }
+  win.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>${title}</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;padding:28px;color:#1B2622;max-width:650px;margin:0 auto}
+      .header{text-align:center;margin-bottom:20px}
+      .header img{width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:8px}
+      .header h1{font-size:1rem;margin:0}
+      .header p{font-size:.75rem;color:#5B6864;margin:3px 0 0}
+      h2{font-size:1.1rem;margin:18px 0 4px}
+      .period{font-size:.78rem;color:#5B6864;margin-bottom:16px}
+      hr{border:none;border-top:1px solid #E4DFD3;margin:16px 0}
+      table{width:100%;border-collapse:collapse;font-size:.85rem}
+      th{text-align:left;padding:8px 6px;border-bottom:2px solid #E4DFD3;font-size:.72rem;text-transform:uppercase;color:#5B6864}
+      td{padding:8px 6px;border-bottom:1px solid #eee}
+      .badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:100px;background:#eee}
+      .footer{text-align:center;margin-top:26px;font-size:.7rem;color:#5B6864}
+      .stat-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.92rem}
+      @media print{ body{padding:14px} }
+    </style></head>
+    <body>
+      <div class="header">
+        <img src="${logoUrl}" alt="loqo">
+        <h1>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</h1>
+        <p>Maliyyə hesabatı</p>
+      </div>
+      <h2>${title}</h2>
+      <div class="period">Dövr: ${reportPeriodLabel()}${window.currentUser?(' · Çıxaran: '+window.currentUser.name):''}</div>
+      <hr>
+      ${innerHtml}
+      <hr>
+      <div class="footer">Çap tarixi: ${new Date().toLocaleString('az-AZ')}<br>By s_akhundoff</div>
+    </body></html>`);
+  win.document.close();
+  setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 350);
+}
+window.printReportSummary = function(){
+  const html = `
+    <div class="stat-row"><span>Daxil olan gəlir</span><b>${document.getElementById('repIncome').textContent}</b></div>
+    <div class="stat-row"><span>Gözlənilən gəlir (borc)</span><b>${document.getElementById('repOwedIncome').textContent}</b></div>
+    <div class="stat-row"><span>Ümumi xərc</span><b>${document.getElementById('repExpense').textContent}</b></div>
+    <div class="stat-row"><span>Xalis mənfəət</span><b>${document.getElementById('repNet').textContent}</b></div>`;
+  printReportBlock('Ümumi maliyyə xülasəsi', html);
+}
+window.printStaffSummary = function(){
+  const title = document.getElementById('repStaffSingleTitle').textContent;
+  const html = `
+    <div class="stat-row"><span>Seans sayı</span><b>${document.getElementById('repStaffSessions').textContent}</b></div>
+    <div class="stat-row"><span>Qazandığı (seanslara görə)</span><b>${document.getElementById('repStaffEarned').textContent}</b></div>
+    <div class="stat-row"><span>Ödənilib</span><b>${document.getElementById('repStaffPaid').textContent}</b></div>
+    <div class="stat-row"><span>Qalan borc</span><b>${document.getElementById('repStaffOwed').textContent}</b></div>`;
+  printReportBlock(title, html);
 }
 
 /* ============ DASHBOARD ============ */
