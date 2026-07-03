@@ -217,6 +217,9 @@ a{color:inherit;text-decoration:none}
 
 /* mobile */
 .mobile-topbar{display:none}
+
+/* rol əsaslı görünürlük */
+.is-staff .admin-only{display:none!important}
 @media(max-width:880px){
   .shell{flex-direction:column}
   .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;padding:.5rem .4rem;z-index:100;border-right:none;border-top:1px solid var(--border);justify-content:flex-start}
@@ -249,7 +252,8 @@ a{color:inherit;text-decoration:none}
     <div class="lock-icon">🌿</div>
     <h1>Klinika Sistemi</h1>
     <p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p>
-    <input type="password" id="lockInput" inputmode="numeric" placeholder="••••" maxlength="6" autocomplete="off">
+    <div class="field" style="text-align:left"><label>Kimsiniz?</label><select id="loginUser"><option value="admin_master">🔑 Admin (Sistem sahibi)</option></select></div>
+    <input type="password" id="lockInput" inputmode="numeric" placeholder="PIN kod" maxlength="6" autocomplete="off">
     <div class="lock-err" id="lockErr"></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="tryUnlock()">Daxil ol</button>
   </div>
@@ -273,8 +277,11 @@ a{color:inherit;text-decoration:none}
       <button class="nav-item" data-view="payments" onclick="switchView('payments')"><span class="ic">💳</span> Ödənişlər</button>
       <button class="nav-item" data-view="expenses" onclick="switchView('expenses')"><span class="ic">🧾</span> Xərclər</button>
       <button class="nav-item" data-view="reports" onclick="switchView('reports')"><span class="ic">📊</span> Hesabat</button>
+      <button class="nav-item admin-only" data-view="auditlog" onclick="switchView('auditlog')"><span class="ic">🔐</span> Qeydlər</button>
     </nav>
     <div class="sidebar-footer">
+      <div id="currentUserLabel" style="font-size:.72rem;font-weight:700;text-align:center;margin-bottom:8px;color:var(--ink-soft)"></div>
+      <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:.8rem" onclick="logoutUser()">🚪 Çıxış</button>
       <div class="credit">By <a href="https://instagram.com/s_akhundoff" target="_blank">s_akhundoff</a><br>© <span id="yr"></span> AN Psixoloji Mərkəzi</div>
     </div>
   </aside>
@@ -338,7 +345,7 @@ a{color:inherit;text-decoration:none}
           <div style="display:flex;gap:8px" class="no-print">
             <button class="btn btn-outline btn-sm" onclick="editPatient()">✏️ Redaktə</button>
             <button class="btn btn-lav btn-sm" onclick="window.print()">🖨️ Çap et</button>
-            <button class="btn btn-danger btn-sm" onclick="deletePatient()">🗑️</button>
+            <button class="btn btn-danger btn-sm admin-only" onclick="deletePatient()">🗑️</button>
           </div>
         </div>
         <div class="grid2" id="pdIntakeGrid"></div>
@@ -393,7 +400,7 @@ a{color:inherit;text-decoration:none}
           <div style="display:flex;gap:8px" class="no-print">
             <button class="btn btn-outline btn-sm" onclick="editStaff()">✏️ Redaktə</button>
             <button class="btn btn-lav btn-sm" onclick="window.print()">🖨️ Çap et</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteStaff()">🗑️</button>
+            <button class="btn btn-danger btn-sm admin-only" onclick="deleteStaff()">🗑️</button>
           </div>
         </div>
       </div>
@@ -487,6 +494,17 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
 
+    <!-- AUDIT LOG -->
+    <div class="view" id="view-auditlog">
+      <div class="topbar">
+        <div><h2>Fəaliyyət qeydləri</h2><div class="sub">Kim, nə vaxt, nə etdi — tam təhlükəsizlik tarixçəsi</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="auditSearch" placeholder="İstifadəçi, bölmə və ya ada görə axtar..." oninput="renderAuditLog()"></div></div>
+        <div class="list" id="auditLogList"></div>
+      </div>
+    </div>
+
   </main>
 </div>
 </div>
@@ -573,6 +591,10 @@ a{color:inherit;text-decoration:none}
       <div class="field"><label>Seans başına standart haqq (₼)</label><input id="stFee" type="number" step="0.01" placeholder="Məs. 15.00"></div>
     </div>
     <div class="field"><label>Qeydlər</label><textarea id="stNotes" placeholder="Əlavə qeydlər..."></textarea></div>
+    <div class="grid2 admin-only">
+      <div class="field"><label>İcazə səviyyəsi</label><select id="stAccessLevel"><option value="staff">Əməkdaş (adi)</option><option value="admin">Admin</option></select></div>
+      <div class="field"><label>Giriş kodu (PIN)</label><input id="stPin" inputmode="numeric" maxlength="6" placeholder="Məs. 1111 (boş — giriş edə bilməz)"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modalStaff')">Ləğv et</button>
       <button class="btn btn-primary" onclick="saveStaff()">💾 Saxla</button>
@@ -642,11 +664,13 @@ const paymentsRef = ref(fbDb, 'klinika/payments');
 const staffRef = ref(fbDb, 'klinika/staff');
 const staffPaymentsRef = ref(fbDb, 'klinika/staffPayments');
 const expensesRef = ref(fbDb, 'klinika/expenses');
+const auditRef = ref(fbDb, 'klinika/auditLog');
 
-window.DB = { patients:{}, sessions:{}, payments:{}, staff:{}, staffPayments:{}, expenses:{} };
+window.DB = { patients:{}, sessions:{}, payments:{}, staff:{}, staffPayments:{}, expenses:{}, auditLog:{} };
 
 function onDataUpdate(){
   // Hər bölmə digərlərini gözləmədən, əlində olan datanı dərhal göstərir.
+  if(typeof window.refreshLoginOptions === 'function') window.refreshLoginOptions();
   if(typeof window.renderAll === 'function') window.renderAll();
 }
 function onFbError(label, err){
@@ -660,6 +684,7 @@ onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; onDataUpda
 onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; onDataUpdate(); }, err => onFbError('staff', err));
 onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; onDataUpdate(); }, err => onFbError('staffPayments', err));
 onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; onDataUpdate(); }, err => onFbError('expenses', err));
+onValue(auditRef, snap => { window.DB.auditLog = snap.val() || {}; onDataUpdate(); }, err => onFbError('auditLog', err));
 
 function wrapWrite(promise, label){
   return promise.catch(err => {
@@ -685,28 +710,86 @@ window.__fbRemoveStaffPayment = (id) => wrapWrite(remove(ref(fbDb, `klinika/staf
 window.__fbAddExpense = (val) => wrapWrite(push(expensesRef, val), 'xərc əlavə etmə');
 window.__fbUpdateExpense = (id, val) => wrapWrite(update(ref(fbDb, `klinika/expenses/${id}`), val), 'xərc yeniləmə');
 window.__fbRemoveExpense = (id) => wrapWrite(remove(ref(fbDb, `klinika/expenses/${id}`)), 'xərc silmə');
+window.__fbAddAudit = (val) => push(auditRef, val).catch(err => console.error('Audit log xətası:', err));
 </script>
 
 <script>
-/* ============ LOCK ============ */
-const PIN = "1234"; // sadə giriş kodu — istəsən dəyişə bilərsən
+/* ============ LOGIN / ROLES ============ */
+const MASTER_ADMIN_PIN = "1234"; // sistem sahibinin master kodu — istəsən dəyişə bilərsən
+window.currentUser = null;
+
+window.refreshLoginOptions = function(){
+  const sel = document.getElementById('loginUser');
+  if(!sel || document.getElementById('app').style.display === 'block') return;
+  const current = sel.value;
+  const staffOpts = Object.entries(window.DB.staff||{})
+    .filter(([id,s]) => s.pin)
+    .sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
+    .map(([id,s])=>`<option value="staff:${id}">${s.accessLevel==='admin'?'🔑':'👤'} ${s.name}</option>`).join('');
+  sel.innerHTML = `<option value="admin_master">🔑 Admin (Sistem sahibi)</option>` + staffOpts;
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
 function tryUnlock(){
+  const selVal = document.getElementById('loginUser').value;
   const val = document.getElementById('lockInput').value;
-  if(val === PIN){
+  let user = null;
+  if(selVal === 'admin_master'){
+    if(val === MASTER_ADMIN_PIN) user = {id:'admin_master', name:'Admin (Sistem sahibi)', role:'admin'};
+  } else if(selVal.startsWith('staff:')){
+    const sid = selVal.slice(6);
+    const s = window.DB.staff[sid];
+    if(s && s.pin && val === s.pin) user = {id:sid, name:s.name, role: s.accessLevel==='admin' ? 'admin' : 'staff'};
+  }
+  if(user){
+    sessionStorage.setItem('klinika_user', JSON.stringify(user));
+    window.currentUser = user;
     document.getElementById('lockScreen').style.display='none';
     document.getElementById('app').style.display='block';
-    sessionStorage.setItem('klinika_unlocked','1');
+    applyRoleUI();
   } else {
-    document.getElementById('lockErr').textContent = 'Kod yanlışdır, yenidən cəhd edin';
+    document.getElementById('lockErr').textContent = 'PIN yanlışdır, yenidən cəhd edin';
     document.getElementById('lockInput').value='';
   }
 }
+function applyRoleUI(){
+  const admin = window.currentUser && window.currentUser.role === 'admin';
+  document.body.classList.toggle('is-admin', admin);
+  document.body.classList.toggle('is-staff', !admin);
+  const el = document.getElementById('currentUserLabel');
+  if(el && window.currentUser) el.textContent = '👤 ' + window.currentUser.name + (admin?' · Admin':' · Əməkdaş');
+  if(typeof window.renderAll === 'function') window.renderAll();
+}
+window.logoutUser = function(){
+  sessionStorage.removeItem('klinika_user');
+  window.currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('lockScreen').style.display='flex';
+  document.getElementById('lockInput').value='';
+  document.getElementById('lockErr').textContent='';
+  refreshLoginOptions();
+}
 document.getElementById('lockInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
-if(sessionStorage.getItem('klinika_unlocked')==='1'){
-  document.getElementById('lockScreen').style.display='none';
-  document.getElementById('app').style.display='block';
+const savedUser = sessionStorage.getItem('klinika_user');
+if(savedUser){
+  try{
+    window.currentUser = JSON.parse(savedUser);
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    applyRoleUI();
+  }catch(e){}
 }
 document.getElementById('yr').textContent = new Date().getFullYear();
+
+function logAction(entity, action, name, detail){
+  if(!window.__fbAddAudit) return;
+  const u = window.currentUser || {name:'Naməlum', role:'staff'};
+  window.__fbAddAudit({
+    ts: Date.now(), date: todayISO(),
+    time: new Date().toLocaleTimeString('az-AZ',{hour:'2-digit',minute:'2-digit'}),
+    user: u.name, role: u.role, entity, action, name: name||'', detail: detail||''
+  });
+}
 
 /* ============ UTIL ============ */
 function toast(msg){
@@ -808,14 +891,16 @@ window.savePatient = function(){
     createdAt: window.DB.patients[editPatientId.value]?.createdAt || Date.now()
   };
   const id = editPatientId.value;
-  if(id){ window.__fbUpdatePatient(id, val); toast('Pasiyent yeniləndi ✓'); }
-  else { window.__fbAddPatient(val); toast('Pasiyent əlavə olundu ✓'); }
+  if(id){ window.__fbUpdatePatient(id, val); logAction('Pasiyent','Redaktə', name, ''); toast('Pasiyent yeniləndi ✓'); }
+  else { window.__fbAddPatient(val); logAction('Pasiyent','Əlavə', name, ''); toast('Pasiyent əlavə olundu ✓'); }
   closeModal('modalPatient');
 }
 window.editPatient = function(){ openPatientModal(currentPatientId); }
 window.deletePatient = function(){
   if(!confirm('Bu pasiyenti və bütün seans/ödəniş qeydlərini silmək istəyirsiniz?')) return;
+  const pname = window.DB.patients[currentPatientId]?.name || '';
   window.__fbRemovePatient(currentPatientId);
+  logAction('Pasiyent','Sil', pname, '');
   Object.entries(window.DB.sessions).forEach(([sid,s])=>{ if(s.patientId===currentPatientId) window.__fbRemoveSession(sid); });
   Object.entries(window.DB.payments).forEach(([pid,p])=>{ if(p.patientId===currentPatientId) window.__fbRemovePayment(pid); });
   toast('Pasiyent silindi');
@@ -868,7 +953,7 @@ function renderPatientDetailLists(){
         ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${s.next}</div>`:''}
         <div class="no-print" style="margin-top:8px;display:flex;gap:8px">
           <button class="btn btn-outline btn-sm" onclick="openSessionModal('${currentPatientId}','${id}')">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="removeSession('${id}')">🗑️</button>
+          <button class="btn btn-danger btn-sm admin-only" onclick="removeSession('${id}')">🗑️</button>
         </div>
       </div>
     </div>`).join('') : `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`;
@@ -881,13 +966,29 @@ function renderPatientDetailLists(){
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
           <button class="btn btn-outline btn-sm no-print" onclick="openPaymentModal('${currentPatientId}','${id}')">✏️</button>
-          <button class="btn btn-danger btn-sm no-print" onclick="removePayment('${id}')">🗑️</button>
+          <button class="btn btn-danger btn-sm no-print admin-only" onclick="removePayment('${id}')">🗑️</button>
         </div>
       </div>
     </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş qeydi yoxdur</p></div>`;
 }
-window.removeSession = function(id){ if(confirm('Seansı silmək istəyirsiniz?')){ window.__fbRemoveSession(id); toast('Silindi'); } }
-window.removePayment = function(id){ if(confirm('Ödənişi silmək istəyirsiniz?')){ window.__fbRemovePayment(id); toast('Silindi'); } }
+window.removeSession = function(id){
+  if(confirm('Seansı silmək istəyirsiniz?')){
+    const s = window.DB.sessions[id];
+    const patName = window.DB.patients[s?.patientId]?.name || '';
+    window.__fbRemoveSession(id);
+    logAction('Seans','Sil', patName, s?.date||'');
+    toast('Silindi');
+  }
+}
+window.removePayment = function(id){
+  if(confirm('Ödənişi silmək istəyirsiniz?')){
+    const p = window.DB.payments[id];
+    const patName = window.DB.patients[p?.patientId]?.name || '';
+    window.__fbRemovePayment(id);
+    logAction('Ödəniş','Sil', patName, `${Number(p?.amount||0).toFixed(2)} ₼`);
+    toast('Silindi');
+  }
+}
 
 /* ============ STAFF ============ */
 window.openStaffModal = function(id){
@@ -896,28 +997,38 @@ window.openStaffModal = function(id){
   if(id){
     const s = window.DB.staff[id];
     stName.value=s.name||''; stPhone.value=s.phone||''; stRole.value=s.role||'Psixoloq'; stFee.value=s.defaultFee||''; stNotes.value=s.notes||'';
+    stAccessLevel.value=s.accessLevel||'staff'; stPin.value=s.pin||'';
   } else {
-    stName.value=stPhone.value=stFee.value=stNotes.value=''; stRole.value='Psixoloq';
+    stName.value=stPhone.value=stFee.value=stNotes.value=stPin.value=''; stRole.value='Psixoloq'; stAccessLevel.value='staff';
   }
   openModal('modalStaff');
 }
 window.saveStaff = function(){
   const name = stName.value.trim();
   if(!name){ toast('Ad daxil edin'); return; }
-  const val = { name, phone:stPhone.value.trim(), role:stRole.value, defaultFee: stFee.value?parseFloat(stFee.value):null, notes:stNotes.value.trim(), createdAt: window.DB.staff[editStaffId.value]?.createdAt || Date.now() };
+  const existing = window.DB.staff[editStaffId.value];
+  const val = {
+    name, phone:stPhone.value.trim(), role:stRole.value, defaultFee: stFee.value?parseFloat(stFee.value):null, notes:stNotes.value.trim(),
+    accessLevel: isAdmin() ? stAccessLevel.value : (existing?.accessLevel||'staff'),
+    pin: isAdmin() ? stPin.value.trim() : (existing?.pin||''),
+    createdAt: existing?.createdAt || Date.now()
+  };
   const id = editStaffId.value;
-  if(id){ window.__fbUpdateStaff(id, val); toast('Əməkdaş yeniləndi ✓'); }
-  else { window.__fbAddStaff(val); toast('Əməkdaş əlavə olundu ✓'); }
+  if(id){ window.__fbUpdateStaff(id, val); logAction('Əməkdaş','Redaktə', name, ''); toast('Əməkdaş yeniləndi ✓'); }
+  else { window.__fbAddStaff(val); logAction('Əməkdaş','Əlavə', name, ''); toast('Əməkdaş əlavə olundu ✓'); }
   closeModal('modalStaff');
 }
 window.editStaff = function(){ openStaffModal(currentStaffId); }
 window.deleteStaff = function(){
   if(!confirm('Bu əməkdaşı silmək istəyirsiniz? Onun seans qeydləri qalacaq, amma əməkdaş bağlantısı silinəcək.')) return;
+  const sname = window.DB.staff[currentStaffId]?.name || '';
   window.__fbRemoveStaff(currentStaffId);
+  logAction('Əməkdaş','Sil', sname, '');
   Object.entries(window.DB.staffPayments).forEach(([id,p])=>{ if(p.staffId===currentStaffId) window.__fbRemoveStaffPayment(id); });
   toast('Əməkdaş silindi');
   switchView('staff');
 }
+function isAdmin(){ return window.currentUser && window.currentUser.role === 'admin'; }
 function staffSessionCount(sid){ return Object.values(window.DB.sessions).filter(s=>s.staffId===sid).length; }
 window.renderStaff = function(){
   const q = (document.getElementById('staffSearch')?.value||'').toLowerCase();
@@ -928,7 +1039,7 @@ window.renderStaff = function(){
   list.innerHTML = filtered.map(([id,s],i)=>`
     <div class="item-card" style="animation-delay:${i*0.03}s" onclick="openStaffDetail('${id}')">
       <div class="avatar staff">${initials(s.name)}</div>
-      <div class="item-main"><div class="t">${s.name}</div><div class="s">${s.role||''} ${s.phone?'· '+s.phone:''}</div></div>
+      <div class="item-main"><div class="t">${s.name} ${s.accessLevel==='admin'?'<span class=\"badge badge-lav\" style=\"margin-left:6px\">Admin</span>':''}</div><div class="s">${s.role||''} ${s.phone?'· '+s.phone:''}</div></div>
       <span class="badge badge-amber">${staffSessionCount(id)} seans</span>
     </div>`).join('');
 }
@@ -975,11 +1086,19 @@ function renderStaffDetailLists(){
       <div class="tl-date">${fmtDate(p.date)}</div>
       <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> ${p.note?'· '+p.note:''}</div>
-        <button class="btn btn-danger btn-sm no-print" onclick="removeStaffPayment('${id}')">🗑️</button>
+        <button class="btn btn-danger btn-sm no-print admin-only" onclick="removeStaffPayment('${id}')">🗑️</button>
       </div>
     </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş edilməyib</p></div>`;
 }
-window.removeStaffPayment = function(id){ if(confirm('Ödənişi silmək istəyirsiniz?')){ window.__fbRemoveStaffPayment(id); toast('Silindi'); } }
+window.removeStaffPayment = function(id){
+  if(confirm('Ödənişi silmək istəyirsiniz?')){
+    const p = window.DB.staffPayments[id];
+    const stName2 = window.DB.staff[p?.staffId]?.name || '';
+    window.__fbRemoveStaffPayment(id);
+    logAction('Əməkdaş ödənişi','Sil', stName2, `${Number(p?.amount||0).toFixed(2)} ₼`);
+    toast('Silindi');
+  }
+}
 
 window.openStaffPaymentModal = function(presetStaffId, editId){
   fillStaffSelect(document.getElementById('spStaff'), presetStaffId);
@@ -996,10 +1115,21 @@ window.openStaffPaymentModal = function(presetStaffId, editId){
 window.saveStaffPayment = function(){
   if(!spStaff.value){ toast('Əməkdaş seçin'); return; }
   if(!spAmount.value){ toast('Məbləğ daxil edin'); return; }
-  const val = { staffId:spStaff.value, amount:parseFloat(spAmount.value), date:spDate.value, note:spNote.value.trim(), createdAt: window.DB.staffPayments[editStaffPaymentId.value]?.createdAt || Date.now() };
   const id = editStaffPaymentId.value;
-  if(id){ window.__fbUpdateStaffPayment(id, val); toast('Yeniləndi ✓'); }
-  else { window.__fbAddStaffPayment(val); toast('Ödəniş qeyd olundu ✓'); }
+  const oldP = window.DB.staffPayments[id];
+  const val = { staffId:spStaff.value, amount:parseFloat(spAmount.value), date:spDate.value, note:spNote.value.trim(), createdAt: oldP?.createdAt || Date.now() };
+  const stName2 = window.DB.staff[val.staffId]?.name || '';
+  if(id){
+    let detail = '';
+    if(oldP && Number(oldP.amount)!==val.amount) detail = `Məbləğ: ${Number(oldP.amount).toFixed(2)} ₼ → ${val.amount.toFixed(2)} ₼`;
+    window.__fbUpdateStaffPayment(id, val);
+    logAction('Əməkdaş ödənişi','Redaktə', stName2, detail);
+    toast('Yeniləndi ✓');
+  } else {
+    window.__fbAddStaffPayment(val);
+    logAction('Əməkdaş ödənişi','Əlavə', stName2, `${val.amount.toFixed(2)} ₼`);
+    toast('Ödəniş qeyd olundu ✓');
+  }
   closeModal('modalStaffPayment');
 }
 
@@ -1041,8 +1171,9 @@ window.saveSession = function(){
   if(!sDate.value){ toast('Tarix daxil edin'); return; }
   const val = { patientId:sPatient.value, date:sDate.value, time:sTime.value, type:sType.value, staffId:sStaff.value||null, staffFee: sStaffFee.value?parseFloat(sStaffFee.value):null, note:sNote.value.trim(), next:sNext.value.trim(), createdAt: window.DB.sessions[editSessionId.value]?.createdAt || Date.now() };
   const id = editSessionId.value;
-  if(id){ window.__fbUpdateSession(id, val); toast('Seans yeniləndi ✓'); }
-  else { window.__fbAddSession(val); toast('Seans əlavə olundu ✓'); }
+  const patName = window.DB.patients[val.patientId]?.name || '';
+  if(id){ window.__fbUpdateSession(id, val); logAction('Seans','Redaktə', patName, val.date); toast('Seans yeniləndi ✓'); }
+  else { window.__fbAddSession(val); logAction('Seans','Əlavə', patName, val.date); toast('Seans əlavə olundu ✓'); }
   closeModal('modalSession');
 }
 window.renderSessions = function(){
@@ -1082,10 +1213,22 @@ window.openPaymentModal = function(presetPatientId, editId){
 window.savePayment = function(){
   if(!pPatient.value){ toast('Pasiyent seçin'); return; }
   if(!pAmount.value){ toast('Məbləğ daxil edin'); return; }
-  const val = { patientId:pPatient.value, amount:parseFloat(pAmount.value), date:pDate.value, type:pType.value, status:pStatus.value, note:pNote.value.trim(), createdAt: window.DB.payments[editPaymentId.value]?.createdAt || Date.now() };
   const id = editPaymentId.value;
-  if(id){ window.__fbUpdatePayment(id, val); toast('Ödəniş yeniləndi ✓'); }
-  else { window.__fbAddPayment(val); toast('Ödəniş əlavə olundu ✓'); }
+  const oldP = window.DB.payments[id];
+  const val = { patientId:pPatient.value, amount:parseFloat(pAmount.value), date:pDate.value, type:pType.value, status:pStatus.value, note:pNote.value.trim(), createdAt: oldP?.createdAt || Date.now() };
+  const patName = window.DB.patients[val.patientId]?.name || '';
+  if(id){
+    let detail = '';
+    if(oldP && Number(oldP.amount) !== val.amount) detail += `Məbləğ: ${Number(oldP.amount).toFixed(2)} ₼ → ${val.amount.toFixed(2)} ₼. `;
+    if(oldP && oldP.status !== val.status) detail += `Status: ${oldP.status==='owed'?'Borc':'Ödənilib'} → ${val.status==='owed'?'Borc':'Ödənilib'}.`;
+    window.__fbUpdatePayment(id, val);
+    logAction('Ödəniş','Redaktə', patName, detail || 'Dəyişiklik edildi');
+    toast('Ödəniş yeniləndi ✓');
+  } else {
+    window.__fbAddPayment(val);
+    logAction('Ödəniş','Əlavə', patName, `${val.amount.toFixed(2)} ₼`);
+    toast('Ödəniş əlavə olundu ✓');
+  }
   closeModal('modalPayment');
 }
 window.renderPayments = function(){
@@ -1128,13 +1271,30 @@ window.saveExpense = function(){
   const title = exTitle.value.trim();
   if(!title){ toast('Başlıq daxil edin'); return; }
   if(!exAmount.value){ toast('Məbləğ daxil edin'); return; }
-  const val = { title, category:exCategory.value, amount:parseFloat(exAmount.value), date:exDate.value, note:exNote.value.trim(), createdAt: window.DB.expenses[editExpenseId.value]?.createdAt || Date.now() };
   const id = editExpenseId.value;
-  if(id){ window.__fbUpdateExpense(id, val); toast('Xərc yeniləndi ✓'); }
-  else { window.__fbAddExpense(val); toast('Xərc əlavə olundu ✓'); }
+  const oldE = window.DB.expenses[id];
+  const val = { title, category:exCategory.value, amount:parseFloat(exAmount.value), date:exDate.value, note:exNote.value.trim(), createdAt: oldE?.createdAt || Date.now() };
+  if(id){
+    let detail = '';
+    if(oldE && Number(oldE.amount)!==val.amount) detail = `Məbləğ: ${Number(oldE.amount).toFixed(2)} ₼ → ${val.amount.toFixed(2)} ₼`;
+    window.__fbUpdateExpense(id, val);
+    logAction('Xərc','Redaktə', title, detail);
+    toast('Xərc yeniləndi ✓');
+  } else {
+    window.__fbAddExpense(val);
+    logAction('Xərc','Əlavə', title, `${val.amount.toFixed(2)} ₼`);
+    toast('Xərc əlavə olundu ✓');
+  }
   closeModal('modalExpense');
 }
-window.removeExpense = function(id){ if(confirm('Xərci silmək istəyirsiniz?')){ window.__fbRemoveExpense(id); toast('Silindi'); } }
+window.removeExpense = function(id){
+  if(confirm('Xərci silmək istəyirsiniz?')){
+    const e = window.DB.expenses[id];
+    window.__fbRemoveExpense(id);
+    logAction('Xərc','Sil', e?.title||'', `${Number(e?.amount||0).toFixed(2)} ₼`);
+    toast('Silindi');
+  }
+}
 window.renderExpenses = function(){
   const q = (document.getElementById('expenseSearch')?.value||'').toLowerCase();
   const list = document.getElementById('expensesList');
@@ -1150,7 +1310,7 @@ window.renderExpenses = function(){
       <div class="avatar" style="background:linear-gradient(135deg,var(--danger),var(--amber))">🧾</div>
       <div class="item-main"><div class="t">${e.title}</div><div class="s">${fmtDate(e.date)} · ${e.category||''} ${e.note?'· '+e.note:''}</div></div>
       <span class="mono" style="font-weight:700;color:var(--danger)">${Number(e.amount||0).toFixed(2)} ₼</span>
-      <button class="btn btn-danger btn-icon no-print" onclick="event.stopPropagation();removeExpense('${id}')">🗑️</button>
+      <button class="btn btn-danger btn-icon no-print admin-only" onclick="event.stopPropagation();removeExpense('${id}')">🗑️</button>
     </div>`).join('');
 }
 
@@ -1252,6 +1412,26 @@ function renderDashboard(){
     </div>`).join('') : `<div class="empty"><div class="ic">🌱</div><p>Hələ pasiyent yoxdur</p></div>`;
 }
 
+/* ============ AUDIT LOG ============ */
+window.renderAuditLog = function(){
+  const el = document.getElementById('auditLogList');
+  if(!el) return;
+  const q = (document.getElementById('auditSearch')?.value||'').toLowerCase();
+  const entries = Object.entries(window.DB.auditLog||{}).sort((a,b)=>(b[1].ts||0)-(a[1].ts||0)).slice(0,300);
+  const filtered = entries.filter(([id,l])=> !q || (l.user||'').toLowerCase().includes(q) || (l.entity||'').toLowerCase().includes(q) || (l.name||'').toLowerCase().includes(q));
+  if(!filtered.length){ el.innerHTML = `<div class="empty"><div class="ic">🔐</div><p>Hələ fəaliyyət qeydə alınmayıb</p></div>`; return; }
+  el.innerHTML = filtered.map(([id,l])=>{
+    const actionColor = l.action==='Sil' ? 'badge-danger' : (l.action==='Əlavə' ? 'badge-success' : 'badge-amber');
+    return `<div class="item-card" style="cursor:default">
+      <div class="avatar" style="background:linear-gradient(135deg,var(--teal),var(--lavender));font-size:.8rem">${initials(l.user)}</div>
+      <div class="item-main">
+        <div class="t">${l.user||'Naməlum'} <span class="badge ${actionColor}" style="margin-left:6px">${l.action}</span> · ${l.entity}</div>
+        <div class="s">${l.name?l.name+' — ':''}${l.detail||''} · ${fmtDate(l.date)} ${l.time||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 /* ============ MASTER RENDER ============ */
 window.renderAll = function(){
   renderDashboard();
@@ -1261,6 +1441,7 @@ window.renderAll = function(){
   renderPayments();
   renderExpenses();
   renderReports();
+  renderAuditLog();
   if(currentPatientId && window.DB.patients[currentPatientId]) renderPatientDetailLists();
   if(currentStaffId && window.DB.staff[currentStaffId]) renderStaffDetailLists();
 }
