@@ -69,8 +69,8 @@ a{color:inherit;text-decoration:none}
 @keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 .lock-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1.2rem;box-shadow:0 8px 24px rgba(21,94,99,.3);animation:pulseRing 2.4s ease-in-out infinite}
 @keyframes pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(21,94,99,.25)}50%{box-shadow:0 0 0 14px rgba(21,94,99,0)}}
-.lock-card h1{font-size:1.3rem;margin-bottom:.3rem}
-.lock-card p{color:var(--ink-soft);font-size:.85rem;margin-bottom:1.4rem}
+.lock-card h1{font-size:1.55rem;font-weight:700;color:var(--teal-deep);margin-bottom:.4rem}
+.lock-card p{color:var(--ink);opacity:.85;font-weight:600;font-size:.88rem;margin-bottom:1.4rem;line-height:1.4}
 #lockInput{width:100%;padding:14px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:1.4rem;text-align:center;letter-spacing:6px;margin-bottom:1rem;transition:.2s}
 #lockInput:focus{border-color:var(--teal-light);box-shadow:0 0 0 4px rgba(42,140,143,.12)}
 .lock-err{color:var(--danger);font-size:.8rem;height:1.1rem;margin-bottom:.6rem}
@@ -87,8 +87,13 @@ a{color:inherit;text-decoration:none}
 }
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:2rem;padding:0 .3rem}
 .brand-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 6px 16px rgba(21,94,99,.25)}
-.brand-text h1{font-size:1.02rem;line-height:1.15;font-weight:600}
-.brand-text p{font-size:.68rem;color:var(--ink-soft);letter-spacing:.02em}
+.brand-text h1{font-size:1.2rem;line-height:1.2;font-weight:700;color:var(--teal-deep);letter-spacing:.01em}
+.brand-text p{font-size:.78rem;color:var(--ink);opacity:.8;font-weight:600;line-height:1.35;margin-top:2px}
+
+/* Yellənən hərf animasiyası */
+.lt{display:inline-block;animation:letterSway 2.4s ease-in-out infinite}
+@keyframes letterSway{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-4px) rotate(-2deg)}}
+@media(prefers-reduced-motion:reduce){.lt{animation:none}}
 
 .nav{display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
 .nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;color:var(--ink-soft);transition:.2s;position:relative}
@@ -250,7 +255,7 @@ a{color:inherit;text-decoration:none}
 <div id="lockScreen">
   <div class="lock-card">
     <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 1.2rem;display:block;box-shadow:0 8px 24px rgba(21,94,99,.3);animation:pulseRing 2.4s ease-in-out infinite">
-    <h1>Klinika Sistemi</h1>
+    <h1 class="anim-title">Klinika Sistemi</h1>
     <p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p>
     <div class="field" style="text-align:left"><label>Kimsiniz?</label><select id="loginUser"><option value="admin_master">🔑 Admin (Sistem sahibi)</option></select></div>
     <input type="password" id="lockInput" inputmode="numeric" placeholder="PIN kod" maxlength="6" autocomplete="off">
@@ -267,7 +272,7 @@ a{color:inherit;text-decoration:none}
   <aside class="sidebar">
     <div class="brand">
       <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
-      <div class="brand-text"><h1>Klinika Sistemi</h1><p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p></div>
+      <div class="brand-text"><h1 class="anim-title">Klinika Sistemi</h1><p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p></div>
     </div>
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="ic">🏠</span> Ana səhifə</button>
@@ -290,7 +295,7 @@ a{color:inherit;text-decoration:none}
   <main class="main">
     <div class="mobile-topbar">
       <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
-      <div><div style="font-weight:700;font-size:.95rem">Klinika Sistemi</div><div style="font-size:.68rem;color:var(--ink-soft)">AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div></div>
+      <div><div class="anim-title" style="font-weight:700;font-size:1.05rem;color:var(--teal-deep)">Klinika Sistemi</div><div style="font-size:.74rem;color:var(--ink);opacity:.8;font-weight:600;margin-top:1px">AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -805,6 +810,17 @@ if(savedUser){
   }catch(e){}
 }
 document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* Klinika Sistemi yazısını hərf-hərf yelləyən animasiyaya çeviririk */
+function animateLetters(){
+  document.querySelectorAll('.anim-title').forEach(el=>{
+    if(el.dataset.animated) return;
+    const text = el.textContent;
+    el.innerHTML = [...text].map((ch,i)=>`<span class="lt" style="animation-delay:${(i*0.07).toFixed(2)}s">${ch===' '?'&nbsp;':ch}</span>`).join('');
+    el.dataset.animated = '1';
+  });
+}
+animateLetters();
 
 function logAction(entity, action, name, detail){
   if(!window.__fbAddAudit) return;
