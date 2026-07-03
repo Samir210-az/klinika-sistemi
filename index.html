@@ -644,38 +644,47 @@ const staffPaymentsRef = ref(fbDb, 'klinika/staffPayments');
 const expensesRef = ref(fbDb, 'klinika/expenses');
 
 window.DB = { patients:{}, sessions:{}, payments:{}, staff:{}, staffPayments:{}, expenses:{} };
-let ready = {p:false,s:false,pay:false,st:false,stp:false,ex:false};
-
-onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; ready.p=true; onDataUpdate(); });
-onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; ready.s=true; onDataUpdate(); });
-onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; ready.pay=true; onDataUpdate(); });
-onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; ready.st=true; onDataUpdate(); });
-onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; ready.stp=true; onDataUpdate(); });
-onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; ready.ex=true; onDataUpdate(); });
-
-window.__fbAddPatient = (val) => push(patientsRef, val);
-window.__fbUpdatePatient = (id, val) => update(ref(fbDb, `klinika/patients/${id}`), val);
-window.__fbRemovePatient = (id) => remove(ref(fbDb, `klinika/patients/${id}`));
-window.__fbAddSession = (val) => push(sessionsRef, val);
-window.__fbUpdateSession = (id, val) => update(ref(fbDb, `klinika/sessions/${id}`), val);
-window.__fbRemoveSession = (id) => remove(ref(fbDb, `klinika/sessions/${id}`));
-window.__fbAddPayment = (val) => push(paymentsRef, val);
-window.__fbUpdatePayment = (id, val) => update(ref(fbDb, `klinika/payments/${id}`), val);
-window.__fbRemovePayment = (id) => remove(ref(fbDb, `klinika/payments/${id}`));
-window.__fbAddStaff = (val) => push(staffRef, val);
-window.__fbUpdateStaff = (id, val) => update(ref(fbDb, `klinika/staff/${id}`), val);
-window.__fbRemoveStaff = (id) => remove(ref(fbDb, `klinika/staff/${id}`));
-window.__fbAddStaffPayment = (val) => push(staffPaymentsRef, val);
-window.__fbUpdateStaffPayment = (id, val) => update(ref(fbDb, `klinika/staffPayments/${id}`), val);
-window.__fbRemoveStaffPayment = (id) => remove(ref(fbDb, `klinika/staffPayments/${id}`));
-window.__fbAddExpense = (val) => push(expensesRef, val);
-window.__fbUpdateExpense = (id, val) => update(ref(fbDb, `klinika/expenses/${id}`), val);
-window.__fbRemoveExpense = (id) => remove(ref(fbDb, `klinika/expenses/${id}`));
 
 function onDataUpdate(){
-  if(!(ready.p&&ready.s&&ready.pay&&ready.st&&ready.stp&&ready.ex)) return;
+  // Hər bölmə digərlərini gözləmədən, əlində olan datanı dərhal göstərir.
   if(typeof window.renderAll === 'function') window.renderAll();
 }
+function onFbError(label, err){
+  console.error('Firebase xətası ('+label+'):', err);
+  if(typeof window.showFbError === 'function') window.showFbError(label, err);
+}
+
+onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; onDataUpdate(); }, err => onFbError('patients', err));
+onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; onDataUpdate(); }, err => onFbError('sessions', err));
+onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; onDataUpdate(); }, err => onFbError('payments', err));
+onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; onDataUpdate(); }, err => onFbError('staff', err));
+onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; onDataUpdate(); }, err => onFbError('staffPayments', err));
+onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; onDataUpdate(); }, err => onFbError('expenses', err));
+
+function wrapWrite(promise, label){
+  return promise.catch(err => {
+    console.error('Yazma xətası ('+label+'):', err);
+    if(typeof window.showFbError === 'function') window.showFbError(label, err);
+  });
+}
+window.__fbAddPatient = (val) => wrapWrite(push(patientsRef, val), 'pasiyent əlavə etmə');
+window.__fbUpdatePatient = (id, val) => wrapWrite(update(ref(fbDb, `klinika/patients/${id}`), val), 'pasiyent yeniləmə');
+window.__fbRemovePatient = (id) => wrapWrite(remove(ref(fbDb, `klinika/patients/${id}`)), 'pasiyent silmə');
+window.__fbAddSession = (val) => wrapWrite(push(sessionsRef, val), 'seans əlavə etmə');
+window.__fbUpdateSession = (id, val) => wrapWrite(update(ref(fbDb, `klinika/sessions/${id}`), val), 'seans yeniləmə');
+window.__fbRemoveSession = (id) => wrapWrite(remove(ref(fbDb, `klinika/sessions/${id}`)), 'seans silmə');
+window.__fbAddPayment = (val) => wrapWrite(push(paymentsRef, val), 'ödəniş əlavə etmə');
+window.__fbUpdatePayment = (id, val) => wrapWrite(update(ref(fbDb, `klinika/payments/${id}`), val), 'ödəniş yeniləmə');
+window.__fbRemovePayment = (id) => wrapWrite(remove(ref(fbDb, `klinika/payments/${id}`)), 'ödəniş silmə');
+window.__fbAddStaff = (val) => wrapWrite(push(staffRef, val), 'əməkdaş əlavə etmə');
+window.__fbUpdateStaff = (id, val) => wrapWrite(update(ref(fbDb, `klinika/staff/${id}`), val), 'əməkdaş yeniləmə');
+window.__fbRemoveStaff = (id) => wrapWrite(remove(ref(fbDb, `klinika/staff/${id}`)), 'əməkdaş silmə');
+window.__fbAddStaffPayment = (val) => wrapWrite(push(staffPaymentsRef, val), 'əməkdaş ödənişi əlavə etmə');
+window.__fbUpdateStaffPayment = (id, val) => wrapWrite(update(ref(fbDb, `klinika/staffPayments/${id}`), val), 'əməkdaş ödənişi yeniləmə');
+window.__fbRemoveStaffPayment = (id) => wrapWrite(remove(ref(fbDb, `klinika/staffPayments/${id}`)), 'əməkdaş ödənişi silmə');
+window.__fbAddExpense = (val) => wrapWrite(push(expensesRef, val), 'xərc əlavə etmə');
+window.__fbUpdateExpense = (id, val) => wrapWrite(update(ref(fbDb, `klinika/expenses/${id}`), val), 'xərc yeniləmə');
+window.__fbRemoveExpense = (id) => wrapWrite(remove(ref(fbDb, `klinika/expenses/${id}`)), 'xərc silmə');
 </script>
 
 <script>
@@ -704,6 +713,13 @@ function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2200);
+}
+window.showFbError = function(label, err){
+  const t = document.getElementById('toast');
+  t.textContent = '⚠️ Firebase xətası (' + label + '): ' + (err?.message || err);
+  t.style.background = 'var(--danger)';
+  t.classList.add('show');
+  setTimeout(()=>{ t.classList.remove('show'); t.style.background=''; }, 6000);
 }
 function initials(name){
   return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
