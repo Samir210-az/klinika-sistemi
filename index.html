@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Klinika Sistemi | AN Psixoloji Mərkəzi</title>
-<meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması və ödəniş idarəetmə sistemi.">
+<meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması, əməkdaş, ödəniş və hesabat sistemi.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B3D3F">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
@@ -85,14 +85,14 @@ a{color:inherit;text-decoration:none}
   border-right:1px solid var(--border);padding:1.6rem 1.2rem;display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;
 }
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:2.2rem;padding:0 .3rem}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:2rem;padding:0 .3rem}
 .brand-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 6px 16px rgba(21,94,99,.25)}
 .brand-text h1{font-size:1.02rem;line-height:1.15;font-weight:600}
 .brand-text p{font-size:.68rem;color:var(--ink-soft);letter-spacing:.02em}
 
-.nav{display:flex;flex-direction:column;gap:4px;flex:1}
-.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--ink-soft);transition:.2s;position:relative}
-.nav-item .ic{font-size:1.05rem;width:22px;text-align:center}
+.nav{display:flex;flex-direction:column;gap:3px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;color:var(--ink-soft);transition:.2s;position:relative}
+.nav-item .ic{font-size:1.02rem;width:22px;text-align:center}
 .nav-item:hover{background:rgba(21,94,99,.06);color:var(--ink)}
 .nav-item.active{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;box-shadow:0 6px 18px rgba(21,94,99,.28)}
 
@@ -121,6 +121,7 @@ a{color:inherit;text-decoration:none}
 .stat-card.lavender .n{color:var(--lavender)}
 .stat-card.amber .n{color:#B9791F}
 .stat-card.danger .n{color:var(--danger)}
+.stat-card.success .n{color:var(--success)}
 
 /* Cards / panels */
 .panel{background:var(--cream-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.4rem}
@@ -133,6 +134,8 @@ a{color:inherit;text-decoration:none}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(21,94,99,.34)}
 .btn-lav{background:linear-gradient(135deg,var(--lavender),var(--lavender-light));color:#fff;box-shadow:0 6px 16px rgba(142,124,195,.3)}
 .btn-lav:hover{transform:translateY(-2px)}
+.btn-amber{background:linear-gradient(135deg,var(--amber),var(--amber-light));color:#5c3b06;box-shadow:0 6px 16px rgba(232,163,61,.32)}
+.btn-amber:hover{transform:translateY(-2px)}
 .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--ink)}
 .btn-outline:hover{border-color:var(--teal-light);color:var(--teal)}
 .btn-danger{background:transparent;color:var(--danger);border:1.5px solid rgba(217,108,90,.35)}
@@ -153,12 +156,15 @@ a{color:inherit;text-decoration:none}
 .field textarea{resize:vertical;min-height:80px}
 .grid2{display:grid;grid-template-columns:1fr;gap:0 1rem}
 @media(min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
+.grid3{display:grid;grid-template-columns:1fr;gap:0 1rem}
+@media(min-width:640px){.grid3{grid-template-columns:1fr 1fr 1fr}}
 
 /* Patient / list items */
 .list{display:flex;flex-direction:column;gap:10px}
 .item-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:#fdfcfa;transition:.2s;cursor:pointer;animation:fadeUp .35s ease backwards}
 .item-card:hover{border-color:var(--teal-light);box-shadow:var(--shadow);transform:translateX(3px)}
 .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
+.avatar.staff{background:linear-gradient(135deg,var(--amber),var(--lavender))}
 .item-main{flex:1;min-width:0}
 .item-main .t{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-main .s{font-size:.76rem;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -181,9 +187,10 @@ a{color:inherit;text-decoration:none}
 .modal h3{font-size:1.2rem;margin-bottom:1.2rem}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.4rem;flex-wrap:wrap}
 
-/* Patient detail */
+/* Patient / Staff detail */
 .pd-head{display:flex;align-items:center;gap:16px;margin-bottom:1.4rem;flex-wrap:wrap}
 .pd-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem}
+.pd-avatar.staff{background:linear-gradient(135deg,var(--amber),var(--lavender))}
 .pd-name{font-size:1.4rem;font-weight:700}
 .pd-meta{font-size:.8rem;color:var(--ink-soft);margin-top:3px}
 .tabs-inline{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
@@ -197,6 +204,13 @@ a{color:inherit;text-decoration:none}
 .tl-date{font-size:.72rem;color:var(--ink-soft);font-weight:700;margin-bottom:2px}
 .tl-body{background:#fdfcfa;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:.85rem}
 
+/* Reports */
+.period-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.4rem}
+.report-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.report-table th{text-align:left;padding:9px 10px;color:var(--ink-soft);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:1.5px solid var(--border)}
+.report-table td{padding:10px 10px;border-bottom:1px solid var(--border)}
+.report-table tr:last-child td{border-bottom:none}
+
 /* toast */
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:100px;font-size:.85rem;font-weight:600;z-index:999;transition:.3s;box-shadow:var(--shadow-lg)}
 #toast.show{transform:translateX(-50%) translateY(0)}
@@ -205,11 +219,11 @@ a{color:inherit;text-decoration:none}
 .mobile-topbar{display:none}
 @media(max-width:880px){
   .shell{flex-direction:column}
-  .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;padding:.6rem .8rem;z-index:100;border-right:none;border-top:1px solid var(--border);justify-content:space-around}
+  .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;padding:.5rem .4rem;z-index:100;border-right:none;border-top:1px solid var(--border);justify-content:flex-start}
   .brand,.sidebar-footer{display:none}
-  .nav{flex-direction:row;justify-content:space-around;width:100%}
-  .nav-item{flex-direction:column;gap:3px;padding:8px 6px;font-size:.62rem;flex:1;text-align:center}
-  .nav-item .ic{font-size:1.2rem}
+  .nav{flex-direction:row;justify-content:flex-start;width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .nav-item{flex-direction:column;gap:3px;padding:7px 10px;font-size:.6rem;flex:0 0 auto;min-width:58px;text-align:center;white-space:nowrap}
+  .nav-item .ic{font-size:1.15rem}
   .main{padding:1.2rem 1rem 6rem}
   .mobile-topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
   .mobile-topbar .brand-icon{width:38px;height:38px;font-size:1.1rem;border-radius:11px}
@@ -255,7 +269,10 @@ a{color:inherit;text-decoration:none}
       <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="ic">🏠</span> Ana səhifə</button>
       <button class="nav-item" data-view="patients" onclick="switchView('patients')"><span class="ic">🧑‍🤝‍🧑</span> Pasiyentlər</button>
       <button class="nav-item" data-view="sessions" onclick="switchView('sessions')"><span class="ic">🗓️</span> Seanslar</button>
+      <button class="nav-item" data-view="staff" onclick="switchView('staff')"><span class="ic">🩺</span> Əməkdaşlar</button>
       <button class="nav-item" data-view="payments" onclick="switchView('payments')"><span class="ic">💳</span> Ödənişlər</button>
+      <button class="nav-item" data-view="expenses" onclick="switchView('expenses')"><span class="ic">🧾</span> Xərclər</button>
+      <button class="nav-item" data-view="reports" onclick="switchView('reports')"><span class="ic">📊</span> Hesabat</button>
     </nav>
     <div class="sidebar-footer">
       <div class="credit">By <a href="https://instagram.com/s_akhundoff" target="_blank">s_akhundoff</a><br>© <span id="yr"></span> AN Psixoloji Mərkəzi</div>
@@ -279,7 +296,15 @@ a{color:inherit;text-decoration:none}
         <div class="stat-card teal"><div class="n" id="statPatients">0</div><div class="l">Ümumi pasiyent</div></div>
         <div class="stat-card lavender"><div class="n" id="statSessionsToday">0</div><div class="l">Bugünkü seans</div></div>
         <div class="stat-card amber"><div class="n" id="statSessionsWeek">0</div><div class="l">Bu həftəki seans</div></div>
-        <div class="stat-card danger"><div class="n mono" id="statOwed">0 ₼</div><div class="l">Ödənilməmiş borc</div></div>
+        <div class="stat-card danger"><div class="n mono" id="statOwed">0 ₼</div><div class="l">Pasiyent borcu</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>💰 Bu ayın maliyyə xülasəsi</h3><button class="btn btn-outline btn-sm" onclick="switchView('reports')">Ətraflı hesabat →</button></div>
+        <div class="stats" style="margin-bottom:0">
+          <div class="stat-card success"><div class="n mono" id="dashIncome">0 ₼</div><div class="l">Daxil olan (bu ay)</div></div>
+          <div class="stat-card danger"><div class="n mono" id="dashExpense">0 ₼</div><div class="l">Xərc (bu ay)</div></div>
+          <div class="stat-card teal"><div class="n mono" id="dashNet">0 ₼</div><div class="l">Xalis (bu ay)</div></div>
+        </div>
       </div>
       <div class="panel">
         <div class="panel-head"><h3>🗓️ Bugünkü seanslar</h3></div>
@@ -341,15 +366,62 @@ a{color:inherit;text-decoration:none}
         <button class="btn btn-primary" onclick="openSessionModal()">+ Yeni seans</button>
       </div>
       <div class="panel">
-        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="sessionSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderSessions()"></div></div>
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="sessionSearch" placeholder="Pasiyent və ya əməkdaş adına görə axtar..." oninput="renderSessions()"></div></div>
         <div class="list" id="sessionsList"></div>
+      </div>
+    </div>
+
+    <!-- STAFF LIST -->
+    <div class="view" id="view-staff">
+      <div class="topbar">
+        <div><h2>Əməkdaşlar</h2><div class="sub">Terapevt, psixoloq və digər əməkdaşların siyahısı</div></div>
+        <button class="btn btn-primary" onclick="openStaffModal()">+ Yeni əməkdaş</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="staffSearch" placeholder="Əməkdaş adına görə axtar..." oninput="renderStaff()"></div></div>
+        <div class="list" id="staffList"></div>
+      </div>
+    </div>
+
+    <!-- STAFF DETAIL -->
+    <div class="view" id="view-staffDetail">
+      <button class="btn btn-outline btn-sm no-print" onclick="switchView('staff')" style="margin-bottom:1rem">← Əməkdaşlara qayıt</button>
+      <div class="panel">
+        <div class="pd-head">
+          <div class="pd-avatar staff" id="sdAvatar">?</div>
+          <div style="flex:1"><div class="pd-name" id="sdName">-</div><div class="pd-meta" id="sdMeta">-</div></div>
+          <div style="display:flex;gap:8px" class="no-print">
+            <button class="btn btn-outline btn-sm" onclick="editStaff()">✏️ Redaktə</button>
+            <button class="btn btn-lav btn-sm" onclick="window.print()">🖨️ Çap et</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteStaff()">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-card teal"><div class="n" id="sdToday">0</div><div class="l">Bugünkü seans</div></div>
+        <div class="stat-card lavender"><div class="n" id="sdWeek">0</div><div class="l">Bu həftəki seans</div></div>
+        <div class="stat-card amber"><div class="n" id="sdMonth">0</div><div class="l">Bu ayki seans</div></div>
+        <div class="stat-card success"><div class="n mono" id="sdPaid">0 ₼</div><div class="l">Ödənilib</div></div>
+        <div class="stat-card danger"><div class="n mono" id="sdOwed">0 ₼</div><div class="l">Qalan borc</div></div>
+      </div>
+      <div class="tabs-inline no-print">
+        <button class="tab-btn active" data-sdtab="sessions" onclick="switchSdTab('sessions')">🗓️ Keçdiyi seanslar</button>
+        <button class="tab-btn" data-sdtab="payments" onclick="switchSdTab('payments')">💳 Ona ödənişlər</button>
+      </div>
+      <div class="panel" id="sdSessionsPanel">
+        <div class="panel-head no-print"><h3>Seans tarixçəsi</h3></div>
+        <div class="timeline" id="sdSessionsTimeline"></div>
+      </div>
+      <div class="panel" id="sdPaymentsPanel" style="display:none">
+        <div class="panel-head no-print"><h3>Ödəniş tarixçəsi</h3><button class="btn btn-primary btn-sm" onclick="openStaffPaymentModal(currentStaffId)">+ Ödəniş et</button></div>
+        <div class="timeline" id="sdPaymentsTimeline"></div>
       </div>
     </div>
 
     <!-- PAYMENTS -->
     <div class="view" id="view-payments">
       <div class="topbar">
-        <div><h2>Ödənişlər</h2><div class="sub">Bütün ödəniş qeydləri</div></div>
+        <div><h2>Ödənişlər</h2><div class="sub">Pasiyentlərdən daxil olan ödəniş qeydləri</div></div>
         <button class="btn btn-primary" onclick="openPaymentModal()">+ Yeni ödəniş</button>
       </div>
       <div class="stats">
@@ -359,6 +431,59 @@ a{color:inherit;text-decoration:none}
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="paymentSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderPayments()"></div></div>
         <div class="list" id="paymentsList"></div>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="view" id="view-expenses">
+      <div class="topbar">
+        <div><h2>Xərclər</h2><div class="sub">Mərkəzin əməliyyat xərcləri</div></div>
+        <button class="btn btn-primary" onclick="openExpenseModal()">+ Yeni xərc</button>
+      </div>
+      <div class="stats">
+        <div class="stat-card danger"><div class="n mono" id="expTotal">0 ₼</div><div class="l">Cəmi xərc (bütün vaxt)</div></div>
+        <div class="stat-card amber"><div class="n mono" id="expMonth">0 ₼</div><div class="l">Bu ayki xərc</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="expenseSearch" placeholder="Başlıq və ya kateqoriyaya görə axtar..." oninput="renderExpenses()"></div></div>
+        <div class="list" id="expensesList"></div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="view" id="view-reports">
+      <div class="topbar">
+        <div><h2>Hesabat</h2><div class="sub">Gəlir və xərc hesabatı</div></div>
+        <button class="btn btn-lav no-print" onclick="window.print()">🖨️ Hesabatı çıxar</button>
+      </div>
+      <div class="period-tabs no-print">
+        <button class="tab-btn active" data-period="today" onclick="setReportPeriod('today')">Bu gün</button>
+        <button class="tab-btn" data-period="week" onclick="setReportPeriod('week')">Bu həftə</button>
+        <button class="tab-btn" data-period="month" onclick="setReportPeriod('month')">Bu ay</button>
+        <button class="tab-btn" data-period="all" onclick="setReportPeriod('all')">Bütün vaxt</button>
+        <button class="tab-btn" data-period="custom" onclick="setReportPeriod('custom')">Xüsusi aralıq</button>
+      </div>
+      <div class="grid2 no-print" id="customRangeBox" style="display:none;margin-bottom:1rem">
+        <div class="field"><label>Başlanğıc</label><input type="date" id="repStart" onchange="renderReports()"></div>
+        <div class="field"><label>Son</label><input type="date" id="repEnd" onchange="renderReports()"></div>
+      </div>
+      <div class="stats">
+        <div class="stat-card success"><div class="n mono" id="repIncome">0 ₼</div><div class="l">Daxil olan gəlir</div></div>
+        <div class="stat-card amber"><div class="n mono" id="repOwedIncome">0 ₼</div><div class="l">Gözlənilən gəlir</div></div>
+        <div class="stat-card danger"><div class="n mono" id="repExpense">0 ₼</div><div class="l">Ümumi xərc</div></div>
+        <div class="stat-card teal"><div class="n mono" id="repNet">0 ₼</div><div class="l">Xalis mənfəət</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🧾 Xərclər — kateqoriya üzrə</h3></div>
+        <table class="report-table" id="repExpenseTable"><thead><tr><th>Kateqoriya</th><th>Məbləğ</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🩺 Əməkdaşlara ödənişlər</h3></div>
+        <table class="report-table" id="repStaffTable"><thead><tr><th>Əməkdaş</th><th>Seans sayı</th><th>Ödənilib</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🧑‍🤝‍🧑 Pasiyent ödənişləri</h3></div>
+        <table class="report-table" id="repPatientTable"><thead><tr><th>Pasiyent</th><th>Tarix</th><th>Məbləğ</th><th>Status</th></tr></thead><tbody></tbody></table>
       </div>
     </div>
 
@@ -400,7 +525,10 @@ a{color:inherit;text-decoration:none}
       <option>İlkin görüş</option><option>Fərdi terapiya</option><option>Qrup məşğələsi</option>
       <option>Valideyn konsultasiyası</option><option>Qiymətləndirmə</option><option>Digər</option>
     </select></div>
-    <div class="field"><label>Terapevt</label><input id="sTherapist" placeholder="Kim aparıb"></div>
+    <div class="grid2">
+      <div class="field"><label>Əməkdaş (kim keçib)</label><select id="sStaff" onchange="onStaffPickedInSession()"></select></div>
+      <div class="field"><label>Əməkdaşa ödəniləcək (₼)</label><input id="sStaffFee" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
     <div class="field"><label>Seans qeydi</label><textarea id="sNote" rows="4" placeholder="Seansda nə baş verdi, müşahidələr..."></textarea></div>
     <div class="field"><label>Növbəti addım</label><input id="sNext" placeholder="Növbəti seans üçün plan"></div>
     <div class="modal-actions">
@@ -429,6 +557,67 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<div class="overlay" id="modalStaff">
+  <div class="modal">
+    <h3 id="staffModalTitle">Yeni əməkdaş</h3>
+    <input type="hidden" id="editStaffId">
+    <div class="grid2">
+      <div class="field"><label>Ad Soyad *</label><input id="stName" placeholder="Məs. Nərmin Əliyeva"></div>
+      <div class="field"><label>Telefon</label><input id="stPhone" placeholder="+994 XX XXX XX XX"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Vəzifə / İxtisas</label><select id="stRole">
+        <option>Psixoloq</option><option>ABA terapevt</option><option>Loqoped</option><option>Defektoloq</option>
+        <option>Erkən müdaxilə mütəxəssisi</option><option>Administrator</option><option>Digər</option>
+      </select></div>
+      <div class="field"><label>Seans başına standart haqq (₼)</label><input id="stFee" type="number" step="0.01" placeholder="Məs. 15.00"></div>
+    </div>
+    <div class="field"><label>Qeydlər</label><textarea id="stNotes" placeholder="Əlavə qeydlər..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalStaff')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="saveStaff()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalStaffPayment">
+  <div class="modal">
+    <h3 id="staffPaymentModalTitle">Əməkdaşa ödəniş</h3>
+    <input type="hidden" id="editStaffPaymentId">
+    <div class="field"><label>Əməkdaş *</label><select id="spStaff"></select></div>
+    <div class="grid2">
+      <div class="field"><label>Məbləğ (₼) *</label><input id="spAmount" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Tarix *</label><input id="spDate" type="date"></div>
+    </div>
+    <div class="field"><label>Qeyd</label><input id="spNote" placeholder="İsteğe bağlı"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalStaffPayment')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="saveStaffPayment()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalExpense">
+  <div class="modal">
+    <h3 id="expenseModalTitle">Yeni xərc</h3>
+    <input type="hidden" id="editExpenseId">
+    <div class="field"><label>Başlıq *</label><input id="exTitle" placeholder="Məs. Ofis icarəsi"></div>
+    <div class="grid2">
+      <div class="field"><label>Kateqoriya</label><select id="exCategory">
+        <option>İcarə</option><option>Kommunal</option><option>Ləvazimat</option><option>Maaş</option>
+        <option>Reklam</option><option>Nəqliyyat</option><option>Digər</option>
+      </select></div>
+      <div class="field"><label>Məbləğ (₼) *</label><input id="exAmount" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="field"><label>Tarix *</label><input id="exDate" type="date"></div>
+    <div class="field"><label>Qeyd</label><input id="exNote" placeholder="İsteğe bağlı"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalExpense')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="saveExpense()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script type="module">
@@ -450,13 +639,19 @@ const fbDb = getDatabase(fbApp);
 const patientsRef = ref(fbDb, 'klinika/patients');
 const sessionsRef = ref(fbDb, 'klinika/sessions');
 const paymentsRef = ref(fbDb, 'klinika/payments');
+const staffRef = ref(fbDb, 'klinika/staff');
+const staffPaymentsRef = ref(fbDb, 'klinika/staffPayments');
+const expensesRef = ref(fbDb, 'klinika/expenses');
 
-window.DB = { patients:{}, sessions:{}, payments:{} };
-let ready = {p:false,s:false,pay:false};
+window.DB = { patients:{}, sessions:{}, payments:{}, staff:{}, staffPayments:{}, expenses:{} };
+let ready = {p:false,s:false,pay:false,st:false,stp:false,ex:false};
 
 onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; ready.p=true; onDataUpdate(); });
 onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; ready.s=true; onDataUpdate(); });
 onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; ready.pay=true; onDataUpdate(); });
+onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; ready.st=true; onDataUpdate(); });
+onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; ready.stp=true; onDataUpdate(); });
+onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; ready.ex=true; onDataUpdate(); });
 
 window.__fbAddPatient = (val) => push(patientsRef, val);
 window.__fbUpdatePatient = (id, val) => update(ref(fbDb, `klinika/patients/${id}`), val);
@@ -467,9 +662,18 @@ window.__fbRemoveSession = (id) => remove(ref(fbDb, `klinika/sessions/${id}`));
 window.__fbAddPayment = (val) => push(paymentsRef, val);
 window.__fbUpdatePayment = (id, val) => update(ref(fbDb, `klinika/payments/${id}`), val);
 window.__fbRemovePayment = (id) => remove(ref(fbDb, `klinika/payments/${id}`));
+window.__fbAddStaff = (val) => push(staffRef, val);
+window.__fbUpdateStaff = (id, val) => update(ref(fbDb, `klinika/staff/${id}`), val);
+window.__fbRemoveStaff = (id) => remove(ref(fbDb, `klinika/staff/${id}`));
+window.__fbAddStaffPayment = (val) => push(staffPaymentsRef, val);
+window.__fbUpdateStaffPayment = (id, val) => update(ref(fbDb, `klinika/staffPayments/${id}`), val);
+window.__fbRemoveStaffPayment = (id) => remove(ref(fbDb, `klinika/staffPayments/${id}`));
+window.__fbAddExpense = (val) => push(expensesRef, val);
+window.__fbUpdateExpense = (id, val) => update(ref(fbDb, `klinika/expenses/${id}`), val);
+window.__fbRemoveExpense = (id) => remove(ref(fbDb, `klinika/expenses/${id}`));
 
 function onDataUpdate(){
-  if(!(ready.p&&ready.s&&ready.pay)) return;
+  if(!(ready.p&&ready.s&&ready.pay&&ready.st&&ready.stp&&ready.ex)) return;
   if(typeof window.renderAll === 'function') window.renderAll();
 }
 </script>
@@ -511,12 +715,27 @@ function fmtDate(d){
   return dt.toLocaleDateString('az-AZ',{day:'2-digit',month:'short',year:'numeric'});
 }
 function todayISO(){ return new Date().toISOString().slice(0,10); }
-function isSameWeek(dateStr){
-  const d = new Date(dateStr+'T00:00:00');
+function weekRange(){
   const now = new Date(); const day = now.getDay()||7;
   const monday = new Date(now); monday.setDate(now.getDate()-day+1); monday.setHours(0,0,0,0);
   const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
+  return [monday, sunday];
+}
+function isSameWeek(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const [monday, sunday] = weekRange();
   return d>=monday && d<=sunday;
+}
+function isSameMonth(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const now = new Date();
+  return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+}
+function monthRangeISO(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  return [start, end];
 }
 function openModal(id){ document.getElementById(id).classList.add('show'); }
 window.closeModal = (id) => document.getElementById(id).classList.remove('show');
@@ -535,10 +754,20 @@ let currentPatientId = null;
 let pdTab = 'sessions';
 window.switchPdTab = function(tab){
   pdTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`.tab-btn[data-pdtab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('#view-patientDetail .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-patientDetail .tab-btn[data-pdtab="${tab}"]`).classList.add('active');
   document.getElementById('pdSessionsPanel').style.display = tab==='sessions'?'block':'none';
   document.getElementById('pdPaymentsPanel').style.display = tab==='payments'?'block':'none';
+}
+
+let currentStaffId = null;
+let sdTab = 'sessions';
+window.switchSdTab = function(tab){
+  sdTab = tab;
+  document.querySelectorAll('#view-staffDetail .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-staffDetail .tab-btn[data-sdtab="${tab}"]`).classList.add('active');
+  document.getElementById('sdSessionsPanel').style.display = tab==='sessions'?'block':'none';
+  document.getElementById('sdPaymentsPanel').style.display = tab==='payments'?'block':'none';
 }
 
 /* ============ PATIENTS ============ */
@@ -609,6 +838,7 @@ window.openPatientDetail = function(id){
   document.getElementById('view-patientDetail').classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
 }
+function staffName(id){ return id && window.DB.staff[id] ? window.DB.staff[id].name : null; }
 function renderPatientDetailLists(){
   const sess = Object.entries(window.DB.sessions).filter(([id,s])=>s.patientId===currentPatientId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
   const pay = Object.entries(window.DB.payments).filter(([id,p])=>p.patientId===currentPatientId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
@@ -617,7 +847,7 @@ function renderPatientDetailLists(){
     <div class="tl-item">
       <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div>
       <div class="tl-body">
-        ${s.therapist?`<div style="font-weight:700;margin-bottom:4px">👤 ${s.therapist}</div>`:''}
+        ${(staffName(s.staffId)||s.therapist)?`<div style="font-weight:700;margin-bottom:4px">👤 ${staffName(s.staffId)||s.therapist}</div>`:''}
         <div>${s.note||'Qeyd yoxdur'}</div>
         ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${s.next}</div>`:''}
         <div class="no-print" style="margin-top:8px;display:flex;gap:8px">
@@ -643,6 +873,133 @@ function renderPatientDetailLists(){
 window.removeSession = function(id){ if(confirm('Seansı silmək istəyirsiniz?')){ window.__fbRemoveSession(id); toast('Silindi'); } }
 window.removePayment = function(id){ if(confirm('Ödənişi silmək istəyirsiniz?')){ window.__fbRemovePayment(id); toast('Silindi'); } }
 
+/* ============ STAFF ============ */
+window.openStaffModal = function(id){
+  document.getElementById('editStaffId').value = id||'';
+  document.getElementById('staffModalTitle').textContent = id?'Əməkdaşı redaktə et':'Yeni əməkdaş';
+  if(id){
+    const s = window.DB.staff[id];
+    stName.value=s.name||''; stPhone.value=s.phone||''; stRole.value=s.role||'Psixoloq'; stFee.value=s.defaultFee||''; stNotes.value=s.notes||'';
+  } else {
+    stName.value=stPhone.value=stFee.value=stNotes.value=''; stRole.value='Psixoloq';
+  }
+  openModal('modalStaff');
+}
+window.saveStaff = function(){
+  const name = stName.value.trim();
+  if(!name){ toast('Ad daxil edin'); return; }
+  const val = { name, phone:stPhone.value.trim(), role:stRole.value, defaultFee: stFee.value?parseFloat(stFee.value):null, notes:stNotes.value.trim(), createdAt: window.DB.staff[editStaffId.value]?.createdAt || Date.now() };
+  const id = editStaffId.value;
+  if(id){ window.__fbUpdateStaff(id, val); toast('Əməkdaş yeniləndi ✓'); }
+  else { window.__fbAddStaff(val); toast('Əməkdaş əlavə olundu ✓'); }
+  closeModal('modalStaff');
+}
+window.editStaff = function(){ openStaffModal(currentStaffId); }
+window.deleteStaff = function(){
+  if(!confirm('Bu əməkdaşı silmək istəyirsiniz? Onun seans qeydləri qalacaq, amma əməkdaş bağlantısı silinəcək.')) return;
+  window.__fbRemoveStaff(currentStaffId);
+  Object.entries(window.DB.staffPayments).forEach(([id,p])=>{ if(p.staffId===currentStaffId) window.__fbRemoveStaffPayment(id); });
+  toast('Əməkdaş silindi');
+  switchView('staff');
+}
+function staffSessionCount(sid){ return Object.values(window.DB.sessions).filter(s=>s.staffId===sid).length; }
+window.renderStaff = function(){
+  const q = (document.getElementById('staffSearch')?.value||'').toLowerCase();
+  const list = document.getElementById('staffList');
+  const entries = Object.entries(window.DB.staff).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+  const filtered = entries.filter(([id,s])=> !q || (s.name||'').toLowerCase().includes(q) || (s.role||'').toLowerCase().includes(q));
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🩺</div><p>Hələ əməkdaş yoxdur. "+ Yeni əməkdaş" düyməsi ilə başlayın.</p></div>`; return; }
+  list.innerHTML = filtered.map(([id,s],i)=>`
+    <div class="item-card" style="animation-delay:${i*0.03}s" onclick="openStaffDetail('${id}')">
+      <div class="avatar staff">${initials(s.name)}</div>
+      <div class="item-main"><div class="t">${s.name}</div><div class="s">${s.role||''} ${s.phone?'· '+s.phone:''}</div></div>
+      <span class="badge badge-amber">${staffSessionCount(id)} seans</span>
+    </div>`).join('');
+}
+window.openStaffDetail = function(id){
+  currentStaffId = id;
+  const s = window.DB.staff[id];
+  if(!s) return;
+  document.getElementById('sdAvatar').textContent = initials(s.name);
+  document.getElementById('sdName').textContent = s.name;
+  document.getElementById('sdMeta').textContent = `${s.role||''} ${s.phone?'· '+s.phone:''} ${s.defaultFee?'· Standart haqq: '+Number(s.defaultFee).toFixed(2)+' ₼':''}`;
+  const mySessions = Object.entries(window.DB.sessions).filter(([id2,x])=>x.staffId===id);
+  document.getElementById('sdToday').textContent = mySessions.filter(([id2,x])=>x.date===todayISO()).length;
+  document.getElementById('sdWeek').textContent = mySessions.filter(([id2,x])=>x.date && isSameWeek(x.date)).length;
+  document.getElementById('sdMonth').textContent = mySessions.filter(([id2,x])=>x.date && isSameMonth(x.date)).length;
+  const totalEarned = mySessions.reduce((sum,[id2,x])=>sum+Number(x.staffFee||0),0);
+  const myPayments = Object.entries(window.DB.staffPayments).filter(([id2,x])=>x.staffId===id);
+  const totalPaid = myPayments.reduce((sum,[id2,x])=>sum+Number(x.amount||0),0);
+  document.getElementById('sdPaid').textContent = totalPaid.toFixed(2)+' ₼';
+  document.getElementById('sdOwed').textContent = Math.max(0,totalEarned-totalPaid).toFixed(2)+' ₼';
+  switchSdTab('sessions');
+  renderStaffDetailLists();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-staffDetail').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderStaffDetailLists(){
+  const sess = Object.entries(window.DB.sessions).filter(([id,s])=>s.staffId===currentStaffId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const pay = Object.entries(window.DB.staffPayments).filter(([id,p])=>p.staffId===currentStaffId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const st = document.getElementById('sdSessionsTimeline');
+  st.innerHTML = sess.length? sess.map(([id,s])=>{
+    const pat = window.DB.patients[s.patientId];
+    return `<div class="tl-item">
+      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div>
+      <div class="tl-body">
+        <div style="font-weight:700;margin-bottom:4px">🧑 ${pat?.name||'Silinmiş pasiyent'}</div>
+        <div>${s.note||'Qeyd yoxdur'}</div>
+        ${s.staffFee?`<div style="margin-top:6px;color:var(--teal);font-weight:600">💰 ${Number(s.staffFee).toFixed(2)} ₼</div>`:''}
+      </div>
+    </div>`;
+  }).join('') : `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`;
+  const pt = document.getElementById('sdPaymentsTimeline');
+  pt.innerHTML = pay.length? pay.map(([id,p])=>`
+    <div class="tl-item">
+      <div class="tl-date">${fmtDate(p.date)}</div>
+      <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> ${p.note?'· '+p.note:''}</div>
+        <button class="btn btn-danger btn-sm no-print" onclick="removeStaffPayment('${id}')">🗑️</button>
+      </div>
+    </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş edilməyib</p></div>`;
+}
+window.removeStaffPayment = function(id){ if(confirm('Ödənişi silmək istəyirsiniz?')){ window.__fbRemoveStaffPayment(id); toast('Silindi'); } }
+
+window.openStaffPaymentModal = function(presetStaffId, editId){
+  fillStaffSelect(document.getElementById('spStaff'), presetStaffId);
+  document.getElementById('editStaffPaymentId').value = editId||'';
+  document.getElementById('staffPaymentModalTitle').textContent = editId?'Ödənişi redaktə et':'Əməkdaşa ödəniş';
+  if(editId){
+    const p = window.DB.staffPayments[editId];
+    spStaff.value=p.staffId; spAmount.value=p.amount||''; spDate.value=p.date||''; spNote.value=p.note||'';
+  } else {
+    spAmount.value=''; spDate.value=todayISO(); spNote.value='';
+  }
+  openModal('modalStaffPayment');
+}
+window.saveStaffPayment = function(){
+  if(!spStaff.value){ toast('Əməkdaş seçin'); return; }
+  if(!spAmount.value){ toast('Məbləğ daxil edin'); return; }
+  const val = { staffId:spStaff.value, amount:parseFloat(spAmount.value), date:spDate.value, note:spNote.value.trim(), createdAt: window.DB.staffPayments[editStaffPaymentId.value]?.createdAt || Date.now() };
+  const id = editStaffPaymentId.value;
+  if(id){ window.__fbUpdateStaffPayment(id, val); toast('Yeniləndi ✓'); }
+  else { window.__fbAddStaffPayment(val); toast('Ödəniş qeyd olundu ✓'); }
+  closeModal('modalStaffPayment');
+}
+
+function fillStaffSelect(selectEl, presetId){
+  const opts = Object.entries(window.DB.staff).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
+    .map(([id,s])=>`<option value="${id}" ${id===presetId?'selected':''}>${s.name}</option>`).join('');
+  selectEl.innerHTML = `<option value="">Seçin</option>` + opts;
+}
+window.onStaffPickedInSession = function(){
+  const sid = document.getElementById('sStaff').value;
+  const s = window.DB.staff[sid];
+  if(s && s.defaultFee && !document.getElementById('sStaffFee').value){
+    document.getElementById('sStaffFee').value = s.defaultFee;
+  }
+}
+
 /* ============ SESSIONS ============ */
 function fillPatientSelect(selectEl, presetId){
   const opts = Object.entries(window.DB.patients).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
@@ -651,21 +1008,22 @@ function fillPatientSelect(selectEl, presetId){
 }
 window.openSessionModal = function(presetPatientId, editId){
   fillPatientSelect(document.getElementById('sPatient'), presetPatientId);
+  fillStaffSelect(document.getElementById('sStaff'), null);
   document.getElementById('editSessionId').value = editId||'';
   document.getElementById('sessionModalTitle').textContent = editId?'Seansı redaktə et':'Yeni seans';
   if(editId){
     const s = window.DB.sessions[editId];
     sPatient.value=s.patientId; sDate.value=s.date||''; sTime.value=s.time||''; sType.value=s.type||'İlkin görüş';
-    sTherapist.value=s.therapist||''; sNote.value=s.note||''; sNext.value=s.next||'';
+    sStaff.value=s.staffId||''; sStaffFee.value=s.staffFee||''; sNote.value=s.note||''; sNext.value=s.next||'';
   } else {
-    sDate.value = todayISO(); sTime.value=''; sType.value='İlkin görüş'; sTherapist.value=''; sNote.value=''; sNext.value='';
+    sDate.value = todayISO(); sTime.value=''; sType.value='İlkin görüş'; sStaff.value=''; sStaffFee.value=''; sNote.value=''; sNext.value='';
   }
   openModal('modalSession');
 }
 window.saveSession = function(){
   if(!sPatient.value){ toast('Pasiyent seçin'); return; }
   if(!sDate.value){ toast('Tarix daxil edin'); return; }
-  const val = { patientId:sPatient.value, date:sDate.value, time:sTime.value, type:sType.value, therapist:sTherapist.value.trim(), note:sNote.value.trim(), next:sNext.value.trim(), createdAt: window.DB.sessions[editSessionId.value]?.createdAt || Date.now() };
+  const val = { patientId:sPatient.value, date:sDate.value, time:sTime.value, type:sType.value, staffId:sStaff.value||null, staffFee: sStaffFee.value?parseFloat(sStaffFee.value):null, note:sNote.value.trim(), next:sNext.value.trim(), createdAt: window.DB.sessions[editSessionId.value]?.createdAt || Date.now() };
   const id = editSessionId.value;
   if(id){ window.__fbUpdateSession(id, val); toast('Seans yeniləndi ✓'); }
   else { window.__fbAddSession(val); toast('Seans əlavə olundu ✓'); }
@@ -677,14 +1035,16 @@ window.renderSessions = function(){
   const entries = Object.entries(window.DB.sessions).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
   const filtered = entries.filter(([id,s])=>{
     const pname = window.DB.patients[s.patientId]?.name || '';
-    return !q || pname.toLowerCase().includes(q);
+    const sname = staffName(s.staffId) || '';
+    return !q || pname.toLowerCase().includes(q) || sname.toLowerCase().includes(q);
   });
   if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`; return; }
   list.innerHTML = filtered.map(([id,s],i)=>{
     const p = window.DB.patients[s.patientId];
+    const sname = staffName(s.staffId);
     return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${s.patientId}')">
       <div class="avatar">${initials(p?.name)}</div>
-      <div class="item-main"><div class="t">${p?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div></div>
+      <div class="item-main"><div class="t">${p?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(s.date)} ${s.time||''} · ${s.type||''} ${sname?'· 👤 '+sname:''}</div></div>
       <span class="badge badge-lav">${s.type||''}</span>
     </div>`;
   }).join('');
@@ -736,6 +1096,106 @@ window.renderPayments = function(){
   }).join('');
 }
 
+/* ============ EXPENSES ============ */
+window.openExpenseModal = function(editId){
+  document.getElementById('editExpenseId').value = editId||'';
+  document.getElementById('expenseModalTitle').textContent = editId?'Xərci redaktə et':'Yeni xərc';
+  if(editId){
+    const e = window.DB.expenses[editId];
+    exTitle.value=e.title||''; exCategory.value=e.category||'Digər'; exAmount.value=e.amount||''; exDate.value=e.date||''; exNote.value=e.note||'';
+  } else {
+    exTitle.value=''; exCategory.value='İcarə'; exAmount.value=''; exDate.value=todayISO(); exNote.value='';
+  }
+  openModal('modalExpense');
+}
+window.saveExpense = function(){
+  const title = exTitle.value.trim();
+  if(!title){ toast('Başlıq daxil edin'); return; }
+  if(!exAmount.value){ toast('Məbləğ daxil edin'); return; }
+  const val = { title, category:exCategory.value, amount:parseFloat(exAmount.value), date:exDate.value, note:exNote.value.trim(), createdAt: window.DB.expenses[editExpenseId.value]?.createdAt || Date.now() };
+  const id = editExpenseId.value;
+  if(id){ window.__fbUpdateExpense(id, val); toast('Xərc yeniləndi ✓'); }
+  else { window.__fbAddExpense(val); toast('Xərc əlavə olundu ✓'); }
+  closeModal('modalExpense');
+}
+window.removeExpense = function(id){ if(confirm('Xərci silmək istəyirsiniz?')){ window.__fbRemoveExpense(id); toast('Silindi'); } }
+window.renderExpenses = function(){
+  const q = (document.getElementById('expenseSearch')?.value||'').toLowerCase();
+  const list = document.getElementById('expensesList');
+  const entries = Object.entries(window.DB.expenses).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const filtered = entries.filter(([id,e])=> !q || (e.title||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q));
+  let total=0, monthTotal=0;
+  Object.values(window.DB.expenses).forEach(e=>{ total+=Number(e.amount||0); if(e.date && isSameMonth(e.date)) monthTotal+=Number(e.amount||0); });
+  document.getElementById('expTotal').textContent = total.toFixed(2)+' ₼';
+  document.getElementById('expMonth').textContent = monthTotal.toFixed(2)+' ₼';
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🧾</div><p>Hələ xərc qeydi yoxdur</p></div>`; return; }
+  list.innerHTML = filtered.map(([id,e],i)=>`
+    <div class="item-card" style="animation-delay:${i*0.02}s;cursor:default" onclick="openExpenseModal('${id}')">
+      <div class="avatar" style="background:linear-gradient(135deg,var(--danger),var(--amber))">🧾</div>
+      <div class="item-main"><div class="t">${e.title}</div><div class="s">${fmtDate(e.date)} · ${e.category||''} ${e.note?'· '+e.note:''}</div></div>
+      <span class="mono" style="font-weight:700;color:var(--danger)">${Number(e.amount||0).toFixed(2)} ₼</span>
+      <button class="btn btn-danger btn-icon no-print" onclick="event.stopPropagation();removeExpense('${id}')">🗑️</button>
+    </div>`).join('');
+}
+
+/* ============ REPORTS ============ */
+let reportPeriod = 'today';
+window.setReportPeriod = function(p){
+  reportPeriod = p;
+  document.querySelectorAll('#view-reports .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-reports .tab-btn[data-period="${p}"]`).classList.add('active');
+  document.getElementById('customRangeBox').style.display = p==='custom' ? 'grid' : 'none';
+  if(p==='custom' && !repStart.value){ const [s,e]=monthRangeISO(); repStart.value=s; repEnd.value=e; }
+  renderReports();
+}
+function getReportRange(){
+  const today = todayISO();
+  if(reportPeriod==='today') return [today, today];
+  if(reportPeriod==='week'){ const [m,s]=weekRange(); return [m.toISOString().slice(0,10), s.toISOString().slice(0,10)]; }
+  if(reportPeriod==='month') return monthRangeISO();
+  if(reportPeriod==='custom') return [repStart.value||'0000-01-01', repEnd.value||'9999-12-31'];
+  return ['0000-01-01','9999-12-31']; // all
+}
+function inRange(dateStr, start, end){ return dateStr && dateStr>=start && dateStr<=end; }
+window.renderReports = function(){
+  const [start, end] = getReportRange();
+  const pays = Object.entries(window.DB.payments).filter(([id,p])=>inRange(p.date,start,end));
+  const income = pays.filter(([id,p])=>p.status!=='owed').reduce((s,[id,p])=>s+Number(p.amount||0),0);
+  const owedIncome = pays.filter(([id,p])=>p.status==='owed').reduce((s,[id,p])=>s+Number(p.amount||0),0);
+  const expenses = Object.entries(window.DB.expenses).filter(([id,e])=>inRange(e.date,start,end));
+  const expenseTotal = expenses.reduce((s,[id,e])=>s+Number(e.amount||0),0);
+  const staffPays = Object.entries(window.DB.staffPayments).filter(([id,p])=>inRange(p.date,start,end));
+  const staffPayTotal = staffPays.reduce((s,[id,p])=>s+Number(p.amount||0),0);
+  const net = income - expenseTotal - staffPayTotal;
+
+  document.getElementById('repIncome').textContent = income.toFixed(2)+' ₼';
+  document.getElementById('repOwedIncome').textContent = owedIncome.toFixed(2)+' ₼';
+  document.getElementById('repExpense').textContent = (expenseTotal+staffPayTotal).toFixed(2)+' ₼';
+  document.getElementById('repNet').textContent = net.toFixed(2)+' ₼';
+
+  // expense by category
+  const byCat = {};
+  expenses.forEach(([id,e])=>{ byCat[e.category||'Digər'] = (byCat[e.category||'Digər']||0)+Number(e.amount||0); });
+  if(staffPayTotal>0) byCat['Əməkdaş ödənişləri'] = staffPayTotal;
+  const catRows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  document.querySelector('#repExpenseTable tbody').innerHTML = catRows.length ? catRows.map(([cat,amt])=>`<tr><td>${cat}</td><td class="mono">${amt.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="2" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə xərc qeydə alınmayıb</td></tr>`;
+
+  // staff sessions/payments in range
+  const staffRows = Object.entries(window.DB.staff).map(([sid,s])=>{
+    const cnt = Object.values(window.DB.sessions).filter(x=>x.staffId===sid && inRange(x.date,start,end)).length;
+    const paid = staffPays.filter(([id,p])=>p.staffId===sid).reduce((sum,[id,p])=>sum+Number(p.amount||0),0);
+    return {name:s.name, cnt, paid};
+  }).filter(r=>r.cnt>0 || r.paid>0).sort((a,b)=>b.cnt-a.cnt);
+  document.querySelector('#repStaffTable tbody').innerHTML = staffRows.length ? staffRows.map(r=>`<tr><td>${r.name}</td><td>${r.cnt}</td><td class="mono">${r.paid.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="3" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə məlumat yoxdur</td></tr>`;
+
+  // patient payments table
+  const patRows = pays.sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  document.querySelector('#repPatientTable tbody').innerHTML = patRows.length ? patRows.map(([id,p])=>{
+    const pat = window.DB.patients[p.patientId];
+    return `<tr><td>${pat?.name||'-'}</td><td>${fmtDate(p.date)}</td><td class="mono">${Number(p.amount||0).toFixed(2)} ₼</td><td><span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span></td></tr>`;
+  }).join('') : `<tr><td colspan="4" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə ödəniş yoxdur</td></tr>`;
+}
+
 /* ============ DASHBOARD ============ */
 function renderDashboard(){
   const patients = window.DB.patients, sessions = window.DB.sessions, payments = window.DB.payments;
@@ -748,12 +1208,21 @@ function renderDashboard(){
   document.getElementById('statOwed').textContent = owed.toFixed(2)+' ₼';
   document.getElementById('todayPill').textContent = '📅 ' + new Date().toLocaleDateString('az-AZ',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
+  const [ms,me] = monthRangeISO();
+  const monthIncome = Object.values(payments).filter(p=>p.status!=='owed' && p.date>=ms && p.date<=me).reduce((s,p)=>s+Number(p.amount||0),0);
+  const monthExpense = Object.values(window.DB.expenses).filter(e=>e.date>=ms && e.date<=me).reduce((s,e)=>s+Number(e.amount||0),0)
+    + Object.values(window.DB.staffPayments).filter(p=>p.date>=ms && p.date<=me).reduce((s,p)=>s+Number(p.amount||0),0);
+  document.getElementById('dashIncome').textContent = monthIncome.toFixed(2)+' ₼';
+  document.getElementById('dashExpense').textContent = monthExpense.toFixed(2)+' ₼';
+  document.getElementById('dashNet').textContent = (monthIncome-monthExpense).toFixed(2)+' ₼';
+
   const tsl = document.getElementById('todaySessionsList');
   tsl.innerHTML = todaySess.length ? todaySess.sort((a,b)=>(a[1].time||'').localeCompare(b[1].time||'')).map(([id,s])=>{
     const p = patients[s.patientId];
+    const sname = staffName(s.staffId);
     return `<div class="item-card" onclick="openPatientDetail('${s.patientId}')">
       <div class="avatar">${initials(p?.name)}</div>
-      <div class="item-main"><div class="t">${p?.name||'-'}</div><div class="s">${s.time||'saat qeyd olunmayıb'} · ${s.type||''}</div></div>
+      <div class="item-main"><div class="t">${p?.name||'-'}</div><div class="s">${s.time||'saat qeyd olunmayıb'} · ${s.type||''} ${sname?'· 👤 '+sname:''}</div></div>
       <span class="badge badge-teal">Bu gün</span>
     </div>`;
   }).join('') : `<div class="empty"><div class="ic">☀️</div><p>Bu gün planlanan seans yoxdur</p></div>`;
@@ -772,8 +1241,12 @@ window.renderAll = function(){
   renderDashboard();
   renderPatients();
   renderSessions();
+  renderStaff();
   renderPayments();
+  renderExpenses();
+  renderReports();
   if(currentPatientId && window.DB.patients[currentPatientId]) renderPatientDetailLists();
+  if(currentStaffId && window.DB.staff[currentStaffId]) renderStaffDetailLists();
 }
 </script>
 </body>
