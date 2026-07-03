@@ -498,7 +498,7 @@ a{color:inherit;text-decoration:none}
     <div class="view" id="view-auditlog">
       <div class="topbar">
         <div><h2>Fəaliyyət qeydləri</h2><div class="sub">Kim, nə vaxt, nə etdi — tam təhlükəsizlik tarixçəsi</div></div>
-        <button class="btn btn-danger admin-only" onclick="resetSystem()">🗑️ Sistemi sıfırla</button>
+        <button class="btn btn-danger admin-only" onclick="resetSystem()">🗑️ Seans/ödəniş/xərcləri sıfırla</button>
       </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="auditSearch" placeholder="İstifadəçi, bölmə və ya ada görə axtar..." oninput="renderAuditLog()"></div></div>
@@ -713,8 +713,8 @@ window.__fbUpdateExpense = (id, val) => wrapWrite(update(ref(fbDb, `klinika/expe
 window.__fbRemoveExpense = (id) => wrapWrite(remove(ref(fbDb, `klinika/expenses/${id}`)), 'xərc silmə');
 window.__fbAddAudit = (val) => push(auditRef, val).catch(err => console.error('Audit log xətası:', err));
 window.__fbResetSystem = () => Promise.all([
-    remove(patientsRef), remove(sessionsRef), remove(paymentsRef),
-    remove(staffRef), remove(staffPaymentsRef), remove(expensesRef)
+    remove(sessionsRef), remove(paymentsRef),
+    remove(staffPaymentsRef), remove(expensesRef)
   ]).catch(err => { console.error('Sıfırlama xətası:', err); if(typeof window.showFbError==='function') window.showFbError('sistem sıfırlama', err); });
 </script>
 
@@ -1450,11 +1450,11 @@ window.renderAuditLog = function(){
 
 window.resetSystem = function(){
   if(!isAdmin()){ toast('⛔ Yalnız admin sıfırlaya bilər'); return; }
-  const ok1 = confirm('DİQQƏT: Bu, bütün pasiyent, seans, ödəniş, əməkdaş və xərc məlumatlarını HƏMİŞƏLİK siləcək.\n\nFəaliyyət qeydləri (audit) saxlanılacaq.\n\nDavam etmək istəyirsiniz?');
+  const ok1 = confirm('DİQQƏT: Bu, bütün SEANS, ÖDƏNİŞ, ƏMƏKDAŞ ÖDƏNİŞİ və XƏRC məlumatlarını HƏMİŞƏLİK siləcək.\n\nPasiyentlər və əməkdaşlar TOXUNULMAYACAQ (onları ancaq öz redaktə/sil düymələri ilə silə bilərsiniz).\nFəaliyyət qeydləri (audit) da saxlanılacaq.\n\nDavam etmək istəyirsiniz?');
   if(!ok1) return;
   const typed = prompt('Təsdiq üçün böyük hərflərlə "SIFIRLA" yazın:');
   if(typed !== 'SIFIRLA'){ toast('Sıfırlama ləğv edildi'); return; }
-  logAction('Sistem','Sıfırlama', '', 'Bütün pasiyent/seans/ödəniş/əməkdaş/xərc məlumatları silindi');
+  logAction('Sistem','Sıfırlama', '', 'Seans/ödəniş/əməkdaş ödənişi/xərc məlumatları silindi (pasiyent və əməkdaşlar toxunulmadı)');
   window.__fbResetSystem();
   toast('Sistem sıfırlandı ✓');
   currentPatientId = null; currentStaffId = null;
