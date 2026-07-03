@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Klinika Sistemi | AN Psixoloji Mərkəzi</title>
+<meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması və ödəniş idarəetmə sistemi.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B3D3F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --teal-deep:#0B3D3F;
+  --teal:#155E63;
+  --teal-light:#2A8C8F;
+  --lavender:#8E7CC3;
+  --lavender-light:#B5A7DE;
+  --amber:#E8A33D;
+  --amber-light:#F2C572;
+  --cream:#F7F4EE;
+  --cream-card:#FFFFFF;
+  --ink:#1B2622;
+  --ink-soft:#5B6864;
+  --border:#E4DFD3;
+  --danger:#D96C5A;
+  --success:#4C9A7A;
+  --radius:20px;
+  --radius-sm:12px;
+  --shadow:0 8px 30px rgba(11,61,63,0.08);
+  --shadow-lg:0 20px 60px rgba(11,61,63,0.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Manrope',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.font-display{font-family:'Fraunces',serif}
+.mono{font-family:'JetBrains Mono',monospace}
+::selection{background:var(--amber-light);color:var(--ink)}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:none}
+input,select,textarea{font-family:inherit;outline:none}
+a{color:inherit;text-decoration:none}
+
+/* ============ BREATHING BACKGROUND ============ */
+.bg-breath{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;animation:drift 22s ease-in-out infinite}
+.blob1{width:480px;height:480px;background:var(--teal-light);top:-140px;left:-120px;animation-delay:0s}
+.blob2{width:420px;height:420px;background:var(--lavender);bottom:-160px;right:-100px;animation-delay:-7s}
+.blob3{width:340px;height:340px;background:var(--amber-light);top:40%;left:60%;animation-delay:-14s}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(40px,-30px) scale(1.08)}
+  66%{transform:translate(-30px,30px) scale(0.95)}
+}
+@media(prefers-reduced-motion:reduce){.blob{animation:none}}
+
+/* ============ LOCK SCREEN ============ */
+#lockScreen{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--cream)}
+.lock-card{background:var(--cream-card);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem 2rem;width:min(380px,90vw);text-align:center;box-shadow:var(--shadow-lg);animation:riseIn .5s ease}
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.lock-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1.2rem;box-shadow:0 8px 24px rgba(21,94,99,.3);animation:pulseRing 2.4s ease-in-out infinite}
+@keyframes pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(21,94,99,.25)}50%{box-shadow:0 0 0 14px rgba(21,94,99,0)}}
+.lock-card h1{font-size:1.3rem;margin-bottom:.3rem}
+.lock-card p{color:var(--ink-soft);font-size:.85rem;margin-bottom:1.4rem}
+#lockInput{width:100%;padding:14px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:1.4rem;text-align:center;letter-spacing:6px;margin-bottom:1rem;transition:.2s}
+#lockInput:focus{border-color:var(--teal-light);box-shadow:0 0 0 4px rgba(42,140,143,.12)}
+.lock-err{color:var(--danger);font-size:.8rem;height:1.1rem;margin-bottom:.6rem}
+
+/* ============ APP LAYOUT ============ */
+#app{display:none}
+.shell{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+  width:250px;flex-shrink:0;background:rgba(255,255,255,.6);backdrop-filter:blur(20px);
+  border-right:1px solid var(--border);padding:1.6rem 1.2rem;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:2.2rem;padding:0 .3rem}
+.brand-icon{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--teal),var(--lavender));display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;box-shadow:0 6px 16px rgba(21,94,99,.25)}
+.brand-text h1{font-size:1.02rem;line-height:1.15;font-weight:600}
+.brand-text p{font-size:.68rem;color:var(--ink-soft);letter-spacing:.02em}
+
+.nav{display:flex;flex-direction:column;gap:4px;flex:1}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--radius-sm);font-size:.88rem;font-weight:600;color:var(--ink-soft);transition:.2s;position:relative}
+.nav-item .ic{font-size:1.05rem;width:22px;text-align:center}
+.nav-item:hover{background:rgba(21,94,99,.06);color:var(--ink)}
+.nav-item.active{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;box-shadow:0 6px 18px rgba(21,94,99,.28)}
+
+.sidebar-footer{padding-top:1rem;border-top:1px solid var(--border);margin-top:1rem}
+.credit{font-size:.68rem;color:var(--ink-soft);text-align:center;line-height:1.6}
+.credit a{color:var(--teal-light);font-weight:600}
+
+/* Main */
+.main{flex:1;padding:2rem 2.4rem 3rem;max-width:1200px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem}
+.topbar h2{font-size:1.7rem;font-weight:600}
+.topbar .sub{color:var(--ink-soft);font-size:.85rem;margin-top:2px}
+.today-pill{background:var(--cream-card);border:1px solid var(--border);border-radius:100px;padding:8px 16px;font-size:.78rem;color:var(--ink-soft);box-shadow:var(--shadow)}
+
+.view{display:none;animation:fadeUp .4s ease}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.8rem}
+.stat-card{background:var(--cream-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.3rem 1.4rem;box-shadow:var(--shadow);transition:.25s}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat-card .n{font-family:'Fraunces',serif;font-size:2.1rem;font-weight:600;line-height:1}
+.stat-card .l{font-size:.78rem;color:var(--ink-soft);margin-top:6px;font-weight:600}
+.stat-card.teal .n{color:var(--teal)}
+.stat-card.lavender .n{color:var(--lavender)}
+.stat-card.amber .n{color:#B9791F}
+.stat-card.danger .n{color:var(--danger)}
+
+/* Cards / panels */
+.panel{background:var(--cream-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.4rem}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;gap:10px;flex-wrap:wrap}
+.panel-head h3{font-size:1.05rem;font-weight:700}
+
+/* Buttons */
+.btn{padding:11px 18px;border-radius:12px;font-size:.85rem;font-weight:700;display:inline-flex;align-items:center;gap:7px;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;box-shadow:0 6px 16px rgba(21,94,99,.28)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(21,94,99,.34)}
+.btn-lav{background:linear-gradient(135deg,var(--lavender),var(--lavender-light));color:#fff;box-shadow:0 6px 16px rgba(142,124,195,.3)}
+.btn-lav:hover{transform:translateY(-2px)}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--ink)}
+.btn-outline:hover{border-color:var(--teal-light);color:var(--teal)}
+.btn-danger{background:transparent;color:var(--danger);border:1.5px solid rgba(217,108,90,.35)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:7px 12px;font-size:.76rem;border-radius:9px}
+.btn-icon{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+
+/* Search + inputs */
+.search-box{position:relative;flex:1;min-width:200px}
+.search-box input{width:100%;padding:10px 14px 10px 38px;border-radius:11px;border:1.5px solid var(--border);font-size:.85rem;background:#fff}
+.search-box input:focus{border-color:var(--teal-light)}
+.search-box .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.5}
+
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:.76rem;font-weight:700;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--border);font-size:.9rem;background:#fdfcfa;transition:.2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal-light);box-shadow:0 0 0 4px rgba(42,140,143,.1);background:#fff}
+.field textarea{resize:vertical;min-height:80px}
+.grid2{display:grid;grid-template-columns:1fr;gap:0 1rem}
+@media(min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
+
+/* Patient / list items */
+.list{display:flex;flex-direction:column;gap:10px}
+.item-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:#fdfcfa;transition:.2s;cursor:pointer;animation:fadeUp .35s ease backwards}
+.item-card:hover{border-color:var(--teal-light);box-shadow:var(--shadow);transform:translateX(3px)}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
+.item-main{flex:1;min-width:0}
+.item-main .t{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-main .s{font-size:.76rem;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:100px;white-space:nowrap}
+.badge-teal{background:rgba(42,140,143,.12);color:var(--teal)}
+.badge-lav{background:rgba(142,124,195,.14);color:var(--lavender)}
+.badge-amber{background:rgba(232,163,61,.16);color:#B9791F}
+.badge-danger{background:rgba(217,108,90,.13);color:var(--danger)}
+.badge-success{background:rgba(76,154,122,.14);color:var(--success)}
+
+.empty{text-align:center;padding:3rem 1rem;color:var(--ink-soft)}
+.empty .ic{font-size:2.4rem;margin-bottom:.6rem;opacity:.6}
+.empty p{font-size:.85rem}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(11,38,34,.45);backdrop-filter:blur(3px);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.overlay.show{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--cream-card);border-radius:var(--radius);padding:1.8rem;width:min(560px,94vw);max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:riseIn .3s ease}
+.modal h3{font-size:1.2rem;margin-bottom:1.2rem}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.4rem;flex-wrap:wrap}
+
+/* Patient detail */
+.pd-head{display:flex;align-items:center;gap:16px;margin-bottom:1.4rem;flex-wrap:wrap}
+.pd-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem}
+.pd-name{font-size:1.4rem;font-weight:700}
+.pd-meta{font-size:.8rem;color:var(--ink-soft);margin-top:3px}
+.tabs-inline{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tab-btn{padding:8px 15px;border-radius:100px;font-size:.8rem;font-weight:700;border:1.5px solid var(--border);color:var(--ink-soft)}
+.tab-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-item{position:relative;padding-bottom:1.2rem}
+.tl-item::before{content:'';position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--teal-light);border:2px solid #fff;box-shadow:0 0 0 1px var(--border)}
+.tl-date{font-size:.72rem;color:var(--ink-soft);font-weight:700;margin-bottom:2px}
+.tl-body{background:#fdfcfa;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:.85rem}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:100px;font-size:.85rem;font-weight:600;z-index:999;transition:.3s;box-shadow:var(--shadow-lg)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* mobile */
+.mobile-topbar{display:none}
+@media(max-width:880px){
+  .shell{flex-direction:column}
+  .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;height:auto;flex-direction:row;padding:.6rem .8rem;z-index:100;border-right:none;border-top:1px solid var(--border);justify-content:space-around}
+  .brand,.sidebar-footer{display:none}
+  .nav{flex-direction:row;justify-content:space-around;width:100%}
+  .nav-item{flex-direction:column;gap:3px;padding:8px 6px;font-size:.62rem;flex:1;text-align:center}
+  .nav-item .ic{font-size:1.2rem}
+  .main{padding:1.2rem 1rem 6rem}
+  .mobile-topbar{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+  .mobile-topbar .brand-icon{width:38px;height:38px;font-size:1.1rem;border-radius:11px}
+  .topbar h2{font-size:1.35rem}
+}
+
+/* print */
+@media print{
+  .sidebar,.topbar .btn,.no-print{display:none!important}
+  body{background:#fff}
+  .main{padding:0;max-width:100%}
+  .panel{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-breath"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
+
+<!-- LOCK SCREEN -->
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon">🌿</div>
+    <h1>Klinika Sistemi</h1>
+    <p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p>
+    <input type="password" id="lockInput" inputmode="numeric" placeholder="••••" maxlength="6" autocomplete="off">
+    <div class="lock-err" id="lockErr"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="tryUnlock()">Daxil ol</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🌿</div>
+      <div class="brand-text"><h1>Klinika Sistemi</h1><p>AN Psixoloji Mərkəzi</p></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="ic">🏠</span> Ana səhifə</button>
+      <button class="nav-item" data-view="patients" onclick="switchView('patients')"><span class="ic">🧑‍🤝‍🧑</span> Pasiyentlər</button>
+      <button class="nav-item" data-view="sessions" onclick="switchView('sessions')"><span class="ic">🗓️</span> Seanslar</button>
+      <button class="nav-item" data-view="payments" onclick="switchView('payments')"><span class="ic">💳</span> Ödənişlər</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="credit">By <a href="https://instagram.com/s_akhundoff" target="_blank">s_akhundoff</a><br>© <span id="yr"></span> AN Psixoloji Mərkəzi</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="mobile-topbar">
+      <div class="brand-icon">🌿</div>
+      <div><div style="font-weight:700;font-size:.95rem">Klinika Sistemi</div><div style="font-size:.68rem;color:var(--ink-soft)">AN Psixoloji Mərkəzi</div></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div><h2>Xoş gəlmisiniz 👋</h2><div class="sub">Bugünkü ümumi vəziyyət</div></div>
+        <div class="today-pill" id="todayPill"></div>
+      </div>
+      <div class="stats">
+        <div class="stat-card teal"><div class="n" id="statPatients">0</div><div class="l">Ümumi pasiyent</div></div>
+        <div class="stat-card lavender"><div class="n" id="statSessionsToday">0</div><div class="l">Bugünkü seans</div></div>
+        <div class="stat-card amber"><div class="n" id="statSessionsWeek">0</div><div class="l">Bu həftəki seans</div></div>
+        <div class="stat-card danger"><div class="n mono" id="statOwed">0 ₼</div><div class="l">Ödənilməmiş borc</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🗓️ Bugünkü seanslar</h3></div>
+        <div class="list" id="todaySessionsList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🆕 Son əlavə olunan pasiyentlər</h3><button class="btn btn-outline btn-sm" onclick="switchView('patients')">Hamısı →</button></div>
+        <div class="list" id="recentPatientsList"></div>
+      </div>
+    </div>
+
+    <!-- PATIENTS LIST -->
+    <div class="view" id="view-patients">
+      <div class="topbar">
+        <div><h2>Pasiyentlər</h2><div class="sub">Bütün pasiyentlərin qeydiyyat siyahısı</div></div>
+        <button class="btn btn-primary" onclick="openPatientModal()">+ Yeni pasiyent</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="patientSearch" placeholder="Ad, telefon və ya səbəbə görə axtar..." oninput="renderPatients()"></div></div>
+        <div class="list" id="patientsList"></div>
+      </div>
+    </div>
+
+    <!-- PATIENT DETAIL -->
+    <div class="view" id="view-patientDetail">
+      <button class="btn btn-outline btn-sm no-print" onclick="switchView('patients')" style="margin-bottom:1rem">← Pasiyentlərə qayıt</button>
+      <div class="panel">
+        <div class="pd-head">
+          <div class="pd-avatar" id="pdAvatar">?</div>
+          <div style="flex:1"><div class="pd-name" id="pdName">-</div><div class="pd-meta" id="pdMeta">-</div></div>
+          <div style="display:flex;gap:8px" class="no-print">
+            <button class="btn btn-outline btn-sm" onclick="editPatient()">✏️ Redaktə</button>
+            <button class="btn btn-lav btn-sm" onclick="window.print()">🖨️ Çap et</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePatient()">🗑️</button>
+          </div>
+        </div>
+        <div class="grid2" id="pdIntakeGrid"></div>
+      </div>
+
+      <div class="tabs-inline no-print">
+        <button class="tab-btn active" data-pdtab="sessions" onclick="switchPdTab('sessions')">🗓️ Seanslar</button>
+        <button class="tab-btn" data-pdtab="payments" onclick="switchPdTab('payments')">💳 Ödənişlər</button>
+      </div>
+
+      <div class="panel" id="pdSessionsPanel">
+        <div class="panel-head no-print"><h3>Seans tarixçəsi</h3><button class="btn btn-primary btn-sm" onclick="openSessionModal(currentPatientId)">+ Yeni seans</button></div>
+        <div class="timeline" id="pdSessionsTimeline"></div>
+      </div>
+      <div class="panel" id="pdPaymentsPanel" style="display:none">
+        <div class="panel-head no-print"><h3>Ödəniş tarixçəsi</h3><button class="btn btn-primary btn-sm" onclick="openPaymentModal(currentPatientId)">+ Yeni ödəniş</button></div>
+        <div class="timeline" id="pdPaymentsTimeline"></div>
+      </div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div class="view" id="view-sessions">
+      <div class="topbar">
+        <div><h2>Seanslar</h2><div class="sub">Bütün planlanan və keçmiş seanslar</div></div>
+        <button class="btn btn-primary" onclick="openSessionModal()">+ Yeni seans</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="sessionSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderSessions()"></div></div>
+        <div class="list" id="sessionsList"></div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="view" id="view-payments">
+      <div class="topbar">
+        <div><h2>Ödənişlər</h2><div class="sub">Bütün ödəniş qeydləri</div></div>
+        <button class="btn btn-primary" onclick="openPaymentModal()">+ Yeni ödəniş</button>
+      </div>
+      <div class="stats">
+        <div class="stat-card teal"><div class="n mono" id="payTotalIn">0 ₼</div><div class="l">Cəmi ödənilib</div></div>
+        <div class="stat-card danger"><div class="n mono" id="payTotalOwed">0 ₼</div><div class="l">Cəmi borc</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="paymentSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderPayments()"></div></div>
+        <div class="list" id="paymentsList"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="modalPatient">
+  <div class="modal">
+    <h3 id="patientModalTitle">Yeni pasiyent</h3>
+    <input type="hidden" id="editPatientId">
+    <div class="grid2">
+      <div class="field"><label>Ad Soyad *</label><input id="fName" placeholder="Məs. Aysel Məmmədova"></div>
+      <div class="field"><label>Telefon</label><input id="fPhone" placeholder="+994 XX XXX XX XX"></div>
+      <div class="field"><label>Yaş</label><input id="fAge" type="number" placeholder="Məs. 7"></div>
+      <div class="field"><label>Cinsiyət</label><select id="fGender"><option value="">Seçin</option><option>Qadın</option><option>Kişi</option></select></div>
+    </div>
+    <div class="field"><label>Müraciət səbəbi</label><textarea id="fReason" placeholder="Nə üçün müraciət edib..."></textarea></div>
+    <div class="field"><label>Referans / kim tövsiyə edib</label><input id="fReferral" placeholder="İsteğe bağlı"></div>
+    <div class="field"><label>İlkin qeydlər</label><textarea id="fNotes" placeholder="Əlavə qeydlər..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalPatient')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="savePatient()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalSession">
+  <div class="modal">
+    <h3 id="sessionModalTitle">Yeni seans</h3>
+    <input type="hidden" id="editSessionId">
+    <div class="field"><label>Pasiyent *</label><select id="sPatient"></select></div>
+    <div class="grid2">
+      <div class="field"><label>Tarix *</label><input id="sDate" type="date"></div>
+      <div class="field"><label>Saat</label><input id="sTime" type="time"></div>
+    </div>
+    <div class="field"><label>Seans növü</label><select id="sType">
+      <option>İlkin görüş</option><option>Fərdi terapiya</option><option>Qrup məşğələsi</option>
+      <option>Valideyn konsultasiyası</option><option>Qiymətləndirmə</option><option>Digər</option>
+    </select></div>
+    <div class="field"><label>Terapevt</label><input id="sTherapist" placeholder="Kim aparıb"></div>
+    <div class="field"><label>Seans qeydi</label><textarea id="sNote" rows="4" placeholder="Seansda nə baş verdi, müşahidələr..."></textarea></div>
+    <div class="field"><label>Növbəti addım</label><input id="sNext" placeholder="Növbəti seans üçün plan"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalSession')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="saveSession()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modalPayment">
+  <div class="modal">
+    <h3 id="paymentModalTitle">Yeni ödəniş</h3>
+    <input type="hidden" id="editPaymentId">
+    <div class="field"><label>Pasiyent *</label><select id="pPatient"></select></div>
+    <div class="grid2">
+      <div class="field"><label>Məbləğ (₼) *</label><input id="pAmount" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Tarix *</label><input id="pDate" type="date"></div>
+    </div>
+    <div class="field"><label>Ödəniş növü</label><select id="pType"><option>Nağd</option><option>Kart</option><option>Bank köçürməsi</option></select></div>
+    <div class="field"><label>Status</label><select id="pStatus"><option value="paid">Ödənilib</option><option value="owed">Borc (gözlənilir)</option></select></div>
+    <div class="field"><label>Qeyd</label><input id="pNote" placeholder="İsteğe bağlı"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modalPayment')">Ləğv et</button>
+      <button class="btn btn-primary" onclick="savePayment()">💾 Saxla</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCBhyGNzZRGgQShP_C9kwAzTm_g_0zJlzg",
+  authDomain: "an-psixoloji-33442.firebaseapp.com",
+  databaseURL: "https://an-psixoloji-33442-default-rtdb.firebaseio.com",
+  projectId: "an-psixoloji-33442",
+  storageBucket: "an-psixoloji-33442.firebasestorage.app",
+  messagingSenderId: "528809299356",
+  appId: "1:528809299356:web:59cae89a64e446dc520c59"
+};
+const fbApp = initializeApp(firebaseConfig);
+const fbDb = getDatabase(fbApp);
+
+const patientsRef = ref(fbDb, 'klinika/patients');
+const sessionsRef = ref(fbDb, 'klinika/sessions');
+const paymentsRef = ref(fbDb, 'klinika/payments');
+
+window.DB = { patients:{}, sessions:{}, payments:{} };
+let ready = {p:false,s:false,pay:false};
+
+onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; ready.p=true; onDataUpdate(); });
+onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; ready.s=true; onDataUpdate(); });
+onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; ready.pay=true; onDataUpdate(); });
+
+window.__fbAddPatient = (val) => push(patientsRef, val);
+window.__fbUpdatePatient = (id, val) => update(ref(fbDb, `klinika/patients/${id}`), val);
+window.__fbRemovePatient = (id) => remove(ref(fbDb, `klinika/patients/${id}`));
+window.__fbAddSession = (val) => push(sessionsRef, val);
+window.__fbUpdateSession = (id, val) => update(ref(fbDb, `klinika/sessions/${id}`), val);
+window.__fbRemoveSession = (id) => remove(ref(fbDb, `klinika/sessions/${id}`));
+window.__fbAddPayment = (val) => push(paymentsRef, val);
+window.__fbUpdatePayment = (id, val) => update(ref(fbDb, `klinika/payments/${id}`), val);
+window.__fbRemovePayment = (id) => remove(ref(fbDb, `klinika/payments/${id}`));
+
+function onDataUpdate(){
+  if(!(ready.p&&ready.s&&ready.pay)) return;
+  if(typeof window.renderAll === 'function') window.renderAll();
+}
+</script>
+
+<script>
+/* ============ LOCK ============ */
+const PIN = "1234"; // sadə giriş kodu — istəsən dəyişə bilərsən
+function tryUnlock(){
+  const val = document.getElementById('lockInput').value;
+  if(val === PIN){
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    sessionStorage.setItem('klinika_unlocked','1');
+  } else {
+    document.getElementById('lockErr').textContent = 'Kod yanlışdır, yenidən cəhd edin';
+    document.getElementById('lockInput').value='';
+  }
+}
+document.getElementById('lockInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryUnlock(); });
+if(sessionStorage.getItem('klinika_unlocked')==='1'){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* ============ UTIL ============ */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function initials(name){
+  return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+function fmtDate(d){
+  if(!d) return '-';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('az-AZ',{day:'2-digit',month:'short',year:'numeric'});
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function isSameWeek(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const now = new Date(); const day = now.getDay()||7;
+  const monday = new Date(now); monday.setDate(now.getDate()-day+1); monday.setHours(0,0,0,0);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6); sunday.setHours(23,59,59,999);
+  return d>=monday && d<=sunday;
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+window.closeModal = (id) => document.getElementById(id).classList.remove('show');
+
+/* ============ NAV ============ */
+window.switchView = function(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  const navBtn = document.querySelector(`.nav-item[data-view="${view}"]`);
+  if(navBtn) navBtn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+let currentPatientId = null;
+let pdTab = 'sessions';
+window.switchPdTab = function(tab){
+  pdTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-pdtab="${tab}"]`).classList.add('active');
+  document.getElementById('pdSessionsPanel').style.display = tab==='sessions'?'block':'none';
+  document.getElementById('pdPaymentsPanel').style.display = tab==='payments'?'block':'none';
+}
+
+/* ============ PATIENTS ============ */
+window.openPatientModal = function(id){
+  document.getElementById('editPatientId').value = id||'';
+  document.getElementById('patientModalTitle').textContent = id? 'Pasiyenti redaktə et':'Yeni pasiyent';
+  if(id){
+    const p = window.DB.patients[id];
+    fName.value=p.name||''; fPhone.value=p.phone||''; fAge.value=p.age||''; fGender.value=p.gender||'';
+    fReason.value=p.reason||''; fReferral.value=p.referral||''; fNotes.value=p.notes||'';
+  } else {
+    fName.value=fPhone.value=fAge.value=fReason.value=fReferral.value=fNotes.value=''; fGender.value='';
+  }
+  openModal('modalPatient');
+}
+window.savePatient = function(){
+  const name = fName.value.trim();
+  if(!name){ toast('Ad daxil edin'); return; }
+  const val = {
+    name, phone:fPhone.value.trim(), age:fAge.value.trim(), gender:fGender.value,
+    reason:fReason.value.trim(), referral:fReferral.value.trim(), notes:fNotes.value.trim(),
+    createdAt: window.DB.patients[editPatientId.value]?.createdAt || Date.now()
+  };
+  const id = editPatientId.value;
+  if(id){ window.__fbUpdatePatient(id, val); toast('Pasiyent yeniləndi ✓'); }
+  else { window.__fbAddPatient(val); toast('Pasiyent əlavə olundu ✓'); }
+  closeModal('modalPatient');
+}
+window.editPatient = function(){ openPatientModal(currentPatientId); }
+window.deletePatient = function(){
+  if(!confirm('Bu pasiyenti və bütün seans/ödəniş qeydlərini silmək istəyirsiniz?')) return;
+  window.__fbRemovePatient(currentPatientId);
+  Object.entries(window.DB.sessions).forEach(([sid,s])=>{ if(s.patientId===currentPatientId) window.__fbRemoveSession(sid); });
+  Object.entries(window.DB.payments).forEach(([pid,p])=>{ if(p.patientId===currentPatientId) window.__fbRemovePayment(pid); });
+  toast('Pasiyent silindi');
+  switchView('patients');
+}
+
+window.renderPatients = function(){
+  const q = (document.getElementById('patientSearch')?.value||'').toLowerCase();
+  const list = document.getElementById('patientsList');
+  const entries = Object.entries(window.DB.patients).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  const filtered = entries.filter(([id,p])=> !q || (p.name||'').toLowerCase().includes(q) || (p.phone||'').includes(q) || (p.reason||'').toLowerCase().includes(q));
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🌱</div><p>Hələ pasiyent yoxdur. "+ Yeni pasiyent" düyməsi ilə başlayın.</p></div>`; return; }
+  list.innerHTML = filtered.map(([id,p],i)=>`
+    <div class="item-card" style="animation-delay:${i*0.03}s" onclick="openPatientDetail('${id}')">
+      <div class="avatar">${initials(p.name)}</div>
+      <div class="item-main"><div class="t">${p.name}</div><div class="s">${p.phone||'Telefon yoxdur'} · ${p.age?p.age+' yaş':'yaş qeyd olunmayıb'}</div></div>
+      <span class="badge badge-teal">${sessionCountFor(id)} seans</span>
+    </div>`).join('');
+}
+function sessionCountFor(pid){ return Object.values(window.DB.sessions).filter(s=>s.patientId===pid).length; }
+
+window.openPatientDetail = function(id){
+  currentPatientId = id;
+  const p = window.DB.patients[id];
+  if(!p) return;
+  document.getElementById('pdAvatar').textContent = initials(p.name);
+  document.getElementById('pdName').textContent = p.name;
+  document.getElementById('pdMeta').textContent = `${p.phone||'Telefon yoxdur'} · ${p.age?p.age+' yaş':'-'} ${p.gender?'· '+p.gender:''}`;
+  document.getElementById('pdIntakeGrid').innerHTML = `
+    <div class="field"><label>Müraciət səbəbi</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.reason||'—'}</div></div>
+    <div class="field"><label>Referans</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.referral||'—'}</div></div>
+    <div class="field" style="grid-column:1/-1"><label>İlkin qeydlər</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.notes||'—'}</div></div>`;
+  switchPdTab('sessions');
+  renderPatientDetailLists();
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-patientDetail').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderPatientDetailLists(){
+  const sess = Object.entries(window.DB.sessions).filter(([id,s])=>s.patientId===currentPatientId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const pay = Object.entries(window.DB.payments).filter(([id,p])=>p.patientId===currentPatientId).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const st = document.getElementById('pdSessionsTimeline');
+  st.innerHTML = sess.length? sess.map(([id,s])=>`
+    <div class="tl-item">
+      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div>
+      <div class="tl-body">
+        ${s.therapist?`<div style="font-weight:700;margin-bottom:4px">👤 ${s.therapist}</div>`:''}
+        <div>${s.note||'Qeyd yoxdur'}</div>
+        ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${s.next}</div>`:''}
+        <div class="no-print" style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="openSessionModal('${currentPatientId}','${id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="removeSession('${id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('') : `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`;
+  const pt = document.getElementById('pdPaymentsTimeline');
+  pt.innerHTML = pay.length? pay.map(([id,p])=>`
+    <div class="tl-item">
+      <div class="tl-date">${fmtDate(p.date)}</div>
+      <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> · ${p.type||''} ${p.note?'· '+p.note:''}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
+          <button class="btn btn-outline btn-sm no-print" onclick="openPaymentModal('${currentPatientId}','${id}')">✏️</button>
+          <button class="btn btn-danger btn-sm no-print" onclick="removePayment('${id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş qeydi yoxdur</p></div>`;
+}
+window.removeSession = function(id){ if(confirm('Seansı silmək istəyirsiniz?')){ window.__fbRemoveSession(id); toast('Silindi'); } }
+window.removePayment = function(id){ if(confirm('Ödənişi silmək istəyirsiniz?')){ window.__fbRemovePayment(id); toast('Silindi'); } }
+
+/* ============ SESSIONS ============ */
+function fillPatientSelect(selectEl, presetId){
+  const opts = Object.entries(window.DB.patients).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
+    .map(([id,p])=>`<option value="${id}" ${id===presetId?'selected':''}>${p.name}</option>`).join('');
+  selectEl.innerHTML = `<option value="">Seçin</option>` + opts;
+}
+window.openSessionModal = function(presetPatientId, editId){
+  fillPatientSelect(document.getElementById('sPatient'), presetPatientId);
+  document.getElementById('editSessionId').value = editId||'';
+  document.getElementById('sessionModalTitle').textContent = editId?'Seansı redaktə et':'Yeni seans';
+  if(editId){
+    const s = window.DB.sessions[editId];
+    sPatient.value=s.patientId; sDate.value=s.date||''; sTime.value=s.time||''; sType.value=s.type||'İlkin görüş';
+    sTherapist.value=s.therapist||''; sNote.value=s.note||''; sNext.value=s.next||'';
+  } else {
+    sDate.value = todayISO(); sTime.value=''; sType.value='İlkin görüş'; sTherapist.value=''; sNote.value=''; sNext.value='';
+  }
+  openModal('modalSession');
+}
+window.saveSession = function(){
+  if(!sPatient.value){ toast('Pasiyent seçin'); return; }
+  if(!sDate.value){ toast('Tarix daxil edin'); return; }
+  const val = { patientId:sPatient.value, date:sDate.value, time:sTime.value, type:sType.value, therapist:sTherapist.value.trim(), note:sNote.value.trim(), next:sNext.value.trim(), createdAt: window.DB.sessions[editSessionId.value]?.createdAt || Date.now() };
+  const id = editSessionId.value;
+  if(id){ window.__fbUpdateSession(id, val); toast('Seans yeniləndi ✓'); }
+  else { window.__fbAddSession(val); toast('Seans əlavə olundu ✓'); }
+  closeModal('modalSession');
+}
+window.renderSessions = function(){
+  const q = (document.getElementById('sessionSearch')?.value||'').toLowerCase();
+  const list = document.getElementById('sessionsList');
+  const entries = Object.entries(window.DB.sessions).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const filtered = entries.filter(([id,s])=>{
+    const pname = window.DB.patients[s.patientId]?.name || '';
+    return !q || pname.toLowerCase().includes(q);
+  });
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`; return; }
+  list.innerHTML = filtered.map(([id,s],i)=>{
+    const p = window.DB.patients[s.patientId];
+    return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${s.patientId}')">
+      <div class="avatar">${initials(p?.name)}</div>
+      <div class="item-main"><div class="t">${p?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div></div>
+      <span class="badge badge-lav">${s.type||''}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ============ PAYMENTS ============ */
+window.openPaymentModal = function(presetPatientId, editId){
+  fillPatientSelect(document.getElementById('pPatient'), presetPatientId);
+  document.getElementById('editPaymentId').value = editId||'';
+  document.getElementById('paymentModalTitle').textContent = editId?'Ödənişi redaktə et':'Yeni ödəniş';
+  if(editId){
+    const p = window.DB.payments[editId];
+    pPatient.value=p.patientId; pAmount.value=p.amount||''; pDate.value=p.date||''; pType.value=p.type||'Nağd'; pStatus.value=p.status||'paid'; pNote.value=p.note||'';
+  } else {
+    pAmount.value=''; pDate.value=todayISO(); pType.value='Nağd'; pStatus.value='paid'; pNote.value='';
+  }
+  openModal('modalPayment');
+}
+window.savePayment = function(){
+  if(!pPatient.value){ toast('Pasiyent seçin'); return; }
+  if(!pAmount.value){ toast('Məbləğ daxil edin'); return; }
+  const val = { patientId:pPatient.value, amount:parseFloat(pAmount.value), date:pDate.value, type:pType.value, status:pStatus.value, note:pNote.value.trim(), createdAt: window.DB.payments[editPaymentId.value]?.createdAt || Date.now() };
+  const id = editPaymentId.value;
+  if(id){ window.__fbUpdatePayment(id, val); toast('Ödəniş yeniləndi ✓'); }
+  else { window.__fbAddPayment(val); toast('Ödəniş əlavə olundu ✓'); }
+  closeModal('modalPayment');
+}
+window.renderPayments = function(){
+  const q = (document.getElementById('paymentSearch')?.value||'').toLowerCase();
+  const list = document.getElementById('paymentsList');
+  const entries = Object.entries(window.DB.payments).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const filtered = entries.filter(([id,p])=>{
+    const pname = window.DB.patients[p.patientId]?.name || '';
+    return !q || pname.toLowerCase().includes(q);
+  });
+  let totalIn=0, totalOwed=0;
+  Object.values(window.DB.payments).forEach(p=>{ if(p.status==='owed') totalOwed+=Number(p.amount||0); else totalIn+=Number(p.amount||0); });
+  document.getElementById('payTotalIn').textContent = totalIn.toFixed(2)+' ₼';
+  document.getElementById('payTotalOwed').textContent = totalOwed.toFixed(2)+' ₼';
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş qeydi yoxdur</p></div>`; return; }
+  list.innerHTML = filtered.map(([id,p],i)=>{
+    const pat = window.DB.patients[p.patientId];
+    return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${p.patientId}')">
+      <div class="avatar">${initials(pat?.name)}</div>
+      <div class="item-main"><div class="t">${pat?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(p.date)} · ${p.type||''} ${p.note?'· '+p.note:''}</div></div>
+      <span class="mono" style="font-weight:700">${Number(p.amount||0).toFixed(2)} ₼</span>
+      <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ============ DASHBOARD ============ */
+function renderDashboard(){
+  const patients = window.DB.patients, sessions = window.DB.sessions, payments = window.DB.payments;
+  document.getElementById('statPatients').textContent = Object.keys(patients).length;
+  const today = todayISO();
+  const todaySess = Object.entries(sessions).filter(([id,s])=>s.date===today);
+  document.getElementById('statSessionsToday').textContent = todaySess.length;
+  document.getElementById('statSessionsWeek').textContent = Object.values(sessions).filter(s=>s.date && isSameWeek(s.date)).length;
+  let owed = 0; Object.values(payments).forEach(p=>{ if(p.status==='owed') owed += Number(p.amount||0); });
+  document.getElementById('statOwed').textContent = owed.toFixed(2)+' ₼';
+  document.getElementById('todayPill').textContent = '📅 ' + new Date().toLocaleDateString('az-AZ',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  const tsl = document.getElementById('todaySessionsList');
+  tsl.innerHTML = todaySess.length ? todaySess.sort((a,b)=>(a[1].time||'').localeCompare(b[1].time||'')).map(([id,s])=>{
+    const p = patients[s.patientId];
+    return `<div class="item-card" onclick="openPatientDetail('${s.patientId}')">
+      <div class="avatar">${initials(p?.name)}</div>
+      <div class="item-main"><div class="t">${p?.name||'-'}</div><div class="s">${s.time||'saat qeyd olunmayıb'} · ${s.type||''}</div></div>
+      <span class="badge badge-teal">Bu gün</span>
+    </div>`;
+  }).join('') : `<div class="empty"><div class="ic">☀️</div><p>Bu gün planlanan seans yoxdur</p></div>`;
+
+  const rpl = document.getElementById('recentPatientsList');
+  const recent = Object.entries(patients).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,5);
+  rpl.innerHTML = recent.length ? recent.map(([id,p])=>`
+    <div class="item-card" onclick="openPatientDetail('${id}')">
+      <div class="avatar">${initials(p.name)}</div>
+      <div class="item-main"><div class="t">${p.name}</div><div class="s">${p.reason||'Səbəb qeyd olunmayıb'}</div></div>
+    </div>`).join('') : `<div class="empty"><div class="ic">🌱</div><p>Hələ pasiyent yoxdur</p></div>`;
+}
+
+/* ============ MASTER RENDER ============ */
+window.renderAll = function(){
+  renderDashboard();
+  renderPatients();
+  renderSessions();
+  renderPayments();
+  if(currentPatientId && window.DB.patients[currentPatientId]) renderPatientDetailLists();
+}
+</script>
+</body>
+</html>
