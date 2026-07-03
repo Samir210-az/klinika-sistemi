@@ -7,6 +7,10 @@
 <meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması, əməkdaş, ödəniş və hesabat sistemi.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B3D3F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Klinika Sistemi">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,6 +66,39 @@ a{color:inherit;text-decoration:none}
   66%{transform:translate(-30px,30px) scale(0.95)}
 }
 @media(prefers-reduced-motion:reduce){.blob{animation:none}}
+
+/* ============ SPLASH EKRANI ============ */
+#splashScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,var(--teal-deep) 0%,var(--teal) 55%,var(--teal-light) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;
+  transition:opacity .6s ease,visibility .6s ease;overflow:hidden;
+}
+#splashScreen::before,#splashScreen::after{
+  content:'';position:absolute;border-radius:50%;filter:blur(60px);opacity:.35;
+}
+#splashScreen::before{width:340px;height:340px;background:var(--amber);top:-80px;left:-60px;animation:drift 18s ease-in-out infinite}
+#splashScreen::after{width:300px;height:300px;background:var(--lavender);bottom:-90px;right:-60px;animation:drift 18s ease-in-out infinite reverse}
+.splash-ks{
+  font-family:'Fraunces',serif;font-size:5.2rem;font-weight:700;letter-spacing:.05em;
+  background:linear-gradient(120deg,#fff 0%,var(--amber-light) 25%,#fff 50%,var(--lavender-light) 75%,#fff 100%);
+  background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:splashIn .7s ease both,shimmer 2.6s linear infinite;position:relative;z-index:1;
+}
+.splash-sub{
+  color:rgba(255,255,255,.85);font-weight:600;font-size:.9rem;letter-spacing:.03em;
+  opacity:0;animation:splashSubIn .7s ease .5s both;position:relative;z-index:1;
+}
+.splash-ring{
+  width:96px;height:96px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;
+  position:absolute;bottom:14%;animation:spin 1s linear infinite;
+}
+@keyframes splashIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes splashSubIn{from{opacity:0;transform:translateY(8px)}to{opacity:.85;transform:translateY(0)}}
+@keyframes shimmer{to{background-position:-220% center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+#splashScreen.hide{opacity:0;visibility:hidden}
+@media(prefers-reduced-motion:reduce){.splash-ks{animation:none}.splash-ring{animation:none}}
 
 /* ============ LOCK SCREEN ============ */
 #lockScreen{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:var(--cream)}
@@ -250,6 +287,13 @@ a{color:inherit;text-decoration:none}
 <body>
 
 <div class="bg-breath"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
+
+<!-- SPLASH EKRANI -->
+<div id="splashScreen">
+  <div class="splash-ks">KS</div>
+  <div class="splash-sub">Klinika Sistemi</div>
+  <div class="splash-ring"></div>
+</div>
 
 <!-- LOCK SCREEN -->
 <div id="lockScreen">
@@ -810,6 +854,19 @@ if(savedUser){
   }catch(e){}
 }
 document.getElementById('yr').textContent = new Date().getFullYear();
+
+/* Splash ekranını qısa müddətdən sonra gizlət */
+setTimeout(()=>{
+  const sp = document.getElementById('splashScreen');
+  if(sp){ sp.classList.add('hide'); setTimeout(()=>sp.remove(), 650); }
+}, 1300);
+
+/* PWA — servis işçisini qeydiyyata al */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(err=>console.error('SW qeydiyyat xətası:', err));
+  });
+}
 
 /* Klinika Sistemi yazısını hərf-hərf yelləyən animasiyaya çeviririk */
 function animateLetters(){
