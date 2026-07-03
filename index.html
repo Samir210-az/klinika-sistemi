@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Klinika Sistemi | AN Psixoloji Mərkəzi</title>
+<title>Klinika Sistemi | AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</title>
 <meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması, əməkdaş, ödəniş və hesabat sistemi.">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B3D3F">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+<link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@ a{color:inherit;text-decoration:none}
 <!-- LOCK SCREEN -->
 <div id="lockScreen">
   <div class="lock-card">
-    <div class="lock-icon">🌿</div>
+    <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 1.2rem;display:block;box-shadow:0 8px 24px rgba(21,94,99,.3);animation:pulseRing 2.4s ease-in-out infinite">
     <h1>Klinika Sistemi</h1>
     <p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p>
     <div class="field" style="text-align:left"><label>Kimsiniz?</label><select id="loginUser"><option value="admin_master">🔑 Admin (Sistem sahibi)</option></select></div>
@@ -266,8 +266,8 @@ a{color:inherit;text-decoration:none}
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-icon">🌿</div>
-      <div class="brand-text"><h1>Klinika Sistemi</h1><p>AN Psixoloji Mərkəzi</p></div>
+      <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
+      <div class="brand-text"><h1>Klinika Sistemi</h1><p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p></div>
     </div>
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="ic">🏠</span> Ana səhifə</button>
@@ -282,15 +282,15 @@ a{color:inherit;text-decoration:none}
     <div class="sidebar-footer">
       <div id="currentUserLabel" style="font-size:.72rem;font-weight:700;text-align:center;margin-bottom:8px;color:var(--ink-soft)"></div>
       <button class="btn btn-outline btn-sm" style="width:100%;justify-content:center;margin-bottom:.8rem" onclick="logoutUser()">🚪 Çıxış</button>
-      <div class="credit">By <a href="https://instagram.com/s_akhundoff" target="_blank">s_akhundoff</a><br>© <span id="yr"></span> AN Psixoloji Mərkəzi</div>
+      <div class="credit">By <a href="https://instagram.com/s_akhundoff" target="_blank">s_akhundoff</a><br>© <span id="yr"></span> AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div>
     </div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
     <div class="mobile-topbar">
-      <div class="brand-icon">🌿</div>
-      <div><div style="font-weight:700;font-size:.95rem">Klinika Sistemi</div><div style="font-size:.68rem;color:var(--ink-soft)">AN Psixoloji Mərkəzi</div></div>
+      <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
+      <div><div style="font-weight:700;font-size:.95rem">Klinika Sistemi</div><div style="font-size:.68rem;color:var(--ink-soft)">AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -498,6 +498,7 @@ a{color:inherit;text-decoration:none}
     <div class="view" id="view-auditlog">
       <div class="topbar">
         <div><h2>Fəaliyyət qeydləri</h2><div class="sub">Kim, nə vaxt, nə etdi — tam təhlükəsizlik tarixçəsi</div></div>
+        <button class="btn btn-danger admin-only" onclick="resetSystem()">🗑️ Sistemi sıfırla</button>
       </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="auditSearch" placeholder="İstifadəçi, bölmə və ya ada görə axtar..." oninput="renderAuditLog()"></div></div>
@@ -711,6 +712,10 @@ window.__fbAddExpense = (val) => wrapWrite(push(expensesRef, val), 'xərc əlav�
 window.__fbUpdateExpense = (id, val) => wrapWrite(update(ref(fbDb, `klinika/expenses/${id}`), val), 'xərc yeniləmə');
 window.__fbRemoveExpense = (id) => wrapWrite(remove(ref(fbDb, `klinika/expenses/${id}`)), 'xərc silmə');
 window.__fbAddAudit = (val) => push(auditRef, val).catch(err => console.error('Audit log xətası:', err));
+window.__fbResetSystem = () => Promise.all([
+    remove(patientsRef), remove(sessionsRef), remove(paymentsRef),
+    remove(staffRef), remove(staffPaymentsRef), remove(expensesRef)
+  ]).catch(err => { console.error('Sıfırlama xətası:', err); if(typeof window.showFbError==='function') window.showFbError('sistem sıfırlama', err); });
 </script>
 
 <script>
@@ -897,6 +902,7 @@ window.savePatient = function(){
 }
 window.editPatient = function(){ openPatientModal(currentPatientId); }
 window.deletePatient = function(){
+  if(!isAdmin()){ toast('⛔ Yalnız admin silə bilər'); return; }
   if(!confirm('Bu pasiyenti və bütün seans/ödəniş qeydlərini silmək istəyirsiniz?')) return;
   const pname = window.DB.patients[currentPatientId]?.name || '';
   window.__fbRemovePatient(currentPatientId);
@@ -952,7 +958,7 @@ function renderPatientDetailLists(){
         <div>${s.note||'Qeyd yoxdur'}</div>
         ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${s.next}</div>`:''}
         <div class="no-print" style="margin-top:8px;display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" onclick="openSessionModal('${currentPatientId}','${id}')">✏️</button>
+          <button class="btn btn-outline btn-sm admin-only" onclick="openSessionModal('${currentPatientId}','${id}')">✏️</button>
           <button class="btn btn-danger btn-sm admin-only" onclick="removeSession('${id}')">🗑️</button>
         </div>
       </div>
@@ -965,13 +971,15 @@ function renderPatientDetailLists(){
         <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> · ${p.type||''} ${p.note?'· '+p.note:''}</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
-          <button class="btn btn-outline btn-sm no-print" onclick="openPaymentModal('${currentPatientId}','${id}')">✏️</button>
+          <button class="btn btn-lav btn-sm no-print" onclick="printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
+          <button class="btn btn-outline btn-sm no-print admin-only" onclick="openPaymentModal('${currentPatientId}','${id}')">✏️</button>
           <button class="btn btn-danger btn-sm no-print admin-only" onclick="removePayment('${id}')">🗑️</button>
         </div>
       </div>
     </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş qeydi yoxdur</p></div>`;
 }
 window.removeSession = function(id){
+  if(!isAdmin()){ toast('⛔ Yalnız admin silə bilər'); return; }
   if(confirm('Seansı silmək istəyirsiniz?')){
     const s = window.DB.sessions[id];
     const patName = window.DB.patients[s?.patientId]?.name || '';
@@ -981,6 +989,7 @@ window.removeSession = function(id){
   }
 }
 window.removePayment = function(id){
+  if(!isAdmin()){ toast('⛔ Yalnız admin silə bilər'); return; }
   if(confirm('Ödənişi silmək istəyirsiniz?')){
     const p = window.DB.payments[id];
     const patName = window.DB.patients[p?.patientId]?.name || '';
@@ -1020,6 +1029,7 @@ window.saveStaff = function(){
 }
 window.editStaff = function(){ openStaffModal(currentStaffId); }
 window.deleteStaff = function(){
+  if(!isAdmin()){ toast('⛔ Yalnız admin silə bilər'); return; }
   if(!confirm('Bu əməkdaşı silmək istəyirsiniz? Onun seans qeydləri qalacaq, amma əməkdaş bağlantısı silinəcək.')) return;
   const sname = window.DB.staff[currentStaffId]?.name || '';
   window.__fbRemoveStaff(currentStaffId);
@@ -1091,6 +1101,7 @@ function renderStaffDetailLists(){
     </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş edilməyib</p></div>`;
 }
 window.removeStaffPayment = function(id){
+  if(!isAdmin()){ toast('⛔ Yalnız admin silə bilər'); return; }
   if(confirm('Ödənişi silmək istəyirsiniz?')){
     const p = window.DB.staffPayments[id];
     const stName2 = window.DB.staff[p?.staffId]?.name || '';
@@ -1101,6 +1112,7 @@ window.removeStaffPayment = function(id){
 }
 
 window.openStaffPaymentModal = function(presetStaffId, editId){
+  if(editId && !isAdmin()){ toast('⛔ Yalnız admin redaktə edə bilər'); return; }
   fillStaffSelect(document.getElementById('spStaff'), presetStaffId);
   document.getElementById('editStaffPaymentId').value = editId||'';
   document.getElementById('staffPaymentModalTitle').textContent = editId?'Ödənişi redaktə et':'Əməkdaşa ödəniş';
@@ -1153,6 +1165,7 @@ function fillPatientSelect(selectEl, presetId){
   selectEl.innerHTML = `<option value="">Seçin</option>` + opts;
 }
 window.openSessionModal = function(presetPatientId, editId){
+  if(editId && !isAdmin()){ toast('⛔ Yalnız admin seansı redaktə edə bilər'); return; }
   fillPatientSelect(document.getElementById('sPatient'), presetPatientId);
   fillStaffSelect(document.getElementById('sStaff'), null);
   document.getElementById('editSessionId').value = editId||'';
@@ -1199,6 +1212,7 @@ window.renderSessions = function(){
 
 /* ============ PAYMENTS ============ */
 window.openPaymentModal = function(presetPatientId, editId){
+  if(editId && !isAdmin()){ toast('⛔ Yalnız admin ödənişi redaktə edə bilər'); return; }
   fillPatientSelect(document.getElementById('pPatient'), presetPatientId);
   document.getElementById('editPaymentId').value = editId||'';
   document.getElementById('paymentModalTitle').textContent = editId?'Ödənişi redaktə et':'Yeni ödəniş';
@@ -1251,12 +1265,14 @@ window.renderPayments = function(){
       <div class="item-main"><div class="t">${pat?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(p.date)} · ${p.type||''} ${p.note?'· '+p.note:''}</div></div>
       <span class="mono" style="font-weight:700">${Number(p.amount||0).toFixed(2)} ₼</span>
       <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
+      <button class="btn btn-lav btn-icon" onclick="event.stopPropagation();printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
     </div>`;
   }).join('');
 }
 
 /* ============ EXPENSES ============ */
 window.openExpenseModal = function(editId){
+  if(editId && !isAdmin()){ toast('⛔ Yalnız admin xərci redaktə edə bilər'); return; }
   document.getElementById('editExpenseId').value = editId||'';
   document.getElementById('expenseModalTitle').textContent = editId?'Xərci redaktə et':'Yeni xərc';
   if(editId){
@@ -1430,6 +1446,68 @@ window.renderAuditLog = function(){
       </div>
     </div>`;
   }).join('');
+}
+
+window.resetSystem = function(){
+  if(!isAdmin()){ toast('⛔ Yalnız admin sıfırlaya bilər'); return; }
+  const ok1 = confirm('DİQQƏT: Bu, bütün pasiyent, seans, ödəniş, əməkdaş və xərc məlumatlarını HƏMİŞƏLİK siləcək.\n\nFəaliyyət qeydləri (audit) saxlanılacaq.\n\nDavam etmək istəyirsiniz?');
+  if(!ok1) return;
+  const typed = prompt('Təsdiq üçün böyük hərflərlə "SIFIRLA" yazın:');
+  if(typed !== 'SIFIRLA'){ toast('Sıfırlama ləğv edildi'); return; }
+  logAction('Sistem','Sıfırlama', '', 'Bütün pasiyent/seans/ödəniş/əməkdaş/xərc məlumatları silindi');
+  window.__fbResetSystem();
+  toast('Sistem sıfırlandı ✓');
+  currentPatientId = null; currentStaffId = null;
+  switchView('dashboard');
+}
+
+/* ============ TƏK ÖDƏNİŞ ÇAPI ============ */
+window.printSinglePayment = function(id){
+  const p = window.DB.payments[id];
+  if(!p){ toast('Ödəniş tapılmadı'); return; }
+  const pat = window.DB.patients[p.patientId];
+  const logoUrl = new URL('logo.png', window.location.href).href;
+  const win = window.open('', '_blank', 'width=480,height=680');
+  if(!win){ toast('Pəncərə açıla bilmədi — brauzer bloklayıb ola bilər'); return; }
+  win.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>Ödəniş qəbzi</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;padding:32px;color:#1B2622;max-width:480px;margin:0 auto}
+      .header{text-align:center;margin-bottom:24px}
+      .header img{width:76px;height:76px;border-radius:50%;object-fit:cover;margin-bottom:10px}
+      .header h1{font-size:1.05rem;margin:0}
+      .header p{font-size:.78rem;color:#5B6864;margin:4px 0 0}
+      hr{border:none;border-top:1px solid #E4DFD3;margin:20px 0}
+      table{width:100%;border-collapse:collapse}
+      td{padding:8px 0;font-size:.92rem}
+      td:first-child{color:#5B6864;width:40%}
+      td:last-child{font-weight:700;text-align:right}
+      .amount{font-size:1.7rem;font-weight:700;text-align:center;margin:22px 0 14px;color:#155E63}
+      .status{text-align:center;padding:5px 16px;border-radius:100px;font-size:.78rem;font-weight:700;margin:0 auto;display:block;width:fit-content}
+      .status.paid{background:#e3f2ec;color:#4C9A7A}
+      .status.owed{background:#fbe9e6;color:#D96C5A}
+      .footer{text-align:center;margin-top:30px;font-size:.7rem;color:#5B6864}
+      @media print{ body{padding:16px} }
+    </style></head>
+    <body>
+      <div class="header">
+        <img src="${logoUrl}" alt="loqo">
+        <h1>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</h1>
+        <p>Ödəniş qəbzi</p>
+      </div>
+      <hr>
+      <table>
+        <tr><td>Pasiyent</td><td>${pat?.name||'-'}</td></tr>
+        <tr><td>Tarix</td><td>${fmtDate(p.date)}</td></tr>
+        <tr><td>Ödəniş növü</td><td>${p.type||'-'}</td></tr>
+        ${p.note?`<tr><td>Qeyd</td><td>${p.note}</td></tr>`:''}
+      </table>
+      <div class="amount">${Number(p.amount||0).toFixed(2)} ₼</div>
+      <div class="status ${p.status==='owed'?'owed':'paid'}">${p.status==='owed'?'Borc (gözlənilir)':'Ödənilib'}</div>
+      <hr>
+      <div class="footer">Çap tarixi: ${new Date().toLocaleString('az-AZ')}<br>By s_akhundoff</div>
+    </body></html>`);
+  win.document.close();
+  setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 350);
 }
 
 /* ============ MASTER RENDER ============ */
