@@ -1,7 +1,7 @@
 {
-  "name": "Klinika Sistemi | AN Psixoloji Mərkəzi",
+  "name": "Klinika Sistemi | AN Psixoloji Dəstək və Reabilitasiya Mərkəzi",
   "short_name": "Klinika",
-  "description": "Pasiyent qeydiyyatı, seans planlaması və ödəniş idarəetməsi",
+  "description": "Pasiyent qeydiyyatı, seans planlaması, əməkdaş və ödəniş idarəetməsi",
   "start_url": "/klinika-sistemi/",
   "scope": "/klinika-sistemi/",
   "display": "standalone",
