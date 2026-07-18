@@ -715,6 +715,7 @@ a{color:inherit;text-decoration:none}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCBhyGNzZRGgQShP_C9kwAzTm_g_0zJlzg",
@@ -727,6 +728,7 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const fbDb = getDatabase(fbApp);
+const fbAuth = getAuth(fbApp);
 
 const patientsRef = ref(fbDb, 'klinika/patients');
 const sessionsRef = ref(fbDb, 'klinika/sessions');
@@ -748,13 +750,19 @@ function onFbError(label, err){
   if(typeof window.showFbError === 'function') window.showFbError(label, err);
 }
 
-onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; onDataUpdate(); }, err => onFbError('patients', err));
-onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; onDataUpdate(); }, err => onFbError('sessions', err));
-onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; onDataUpdate(); }, err => onFbError('payments', err));
-onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; onDataUpdate(); }, err => onFbError('staff', err));
-onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; onDataUpdate(); }, err => onFbError('staffPayments', err));
-onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; onDataUpdate(); }, err => onFbError('expenses', err));
-onValue(auditRef, snap => { window.DB.auditLog = snap.val() || {}; onDataUpdate(); }, err => onFbError('auditLog', err));
+function startFbListeners(){
+  onValue(patientsRef, snap => { window.DB.patients = snap.val() || {}; onDataUpdate(); }, err => onFbError('patients', err));
+  onValue(sessionsRef, snap => { window.DB.sessions = snap.val() || {}; onDataUpdate(); }, err => onFbError('sessions', err));
+  onValue(paymentsRef, snap => { window.DB.payments = snap.val() || {}; onDataUpdate(); }, err => onFbError('payments', err));
+  onValue(staffRef, snap => { window.DB.staff = snap.val() || {}; onDataUpdate(); }, err => onFbError('staff', err));
+  onValue(staffPaymentsRef, snap => { window.DB.staffPayments = snap.val() || {}; onDataUpdate(); }, err => onFbError('staffPayments', err));
+  onValue(expensesRef, snap => { window.DB.expenses = snap.val() || {}; onDataUpdate(); }, err => onFbError('expenses', err));
+  onValue(auditRef, snap => { window.DB.auditLog = snap.val() || {}; onDataUpdate(); }, err => onFbError('auditLog', err));
+}
+
+// Firebase Rules "auth != null" tələb etdiyi üçün əvvəlcə görünməz (anonim) giriş edirik.
+// İstifadəçi bunu hiss etmir, PIN sistemi əvvəlki kimi işləyir.
+signInAnonymously(fbAuth).then(startFbListeners).catch(err => onFbError('auth', err));
 
 function wrapWrite(promise, label){
   return promise.catch(err => {
