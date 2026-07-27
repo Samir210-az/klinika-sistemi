@@ -998,7 +998,7 @@ window.savePatient = function(){
   };
   const id = editPatientId.value;
   if(id){ window.__fbUpdatePatient(id, val); logAction('Pasiyent','Redaktə', name, ''); toast('Pasiyent yeniləndi ✓'); }
-  else { window.__fbAddPatient(val); logAction('Pasiyent','Əlavə', name, ''); toast('Pasiyent əlavə olundu ✓'); }
+  else { window.__fbAddPatient(val); logAction('Pasiyent','Əlavə', name, ''); toast('Pasiyent əlavə olundu ✓'); window.sgTrackRecord && window.sgTrackRecord('Əlavə','Pasiyent',name); }
   closeModal('modalPatient');
 }
 window.editPatient = function(){ openPatientModal(currentPatientId); }
@@ -1125,7 +1125,7 @@ window.saveStaff = function(){
   };
   const id = editStaffId.value;
   if(id){ window.__fbUpdateStaff(id, val); logAction('Əməkdaş','Redaktə', name, ''); toast('Əməkdaş yeniləndi ✓'); }
-  else { window.__fbAddStaff(val); logAction('Əməkdaş','Əlavə', name, ''); toast('Əməkdaş əlavə olundu ✓'); }
+  else { window.__fbAddStaff(val); logAction('Əməkdaş','Əlavə', name, ''); toast('Əməkdaş əlavə olundu ✓'); window.sgTrackRecord && window.sgTrackRecord('Əlavə','Əməkdaş',name); }
   closeModal('modalStaff');
 }
 window.editStaff = function(){ openStaffModal(currentStaffId); }
@@ -1724,5 +1724,6 @@ window.renderAll = function(){
   if(currentStaffId && window.DB.staff[currentStaffId]) renderStaffDetailLists();
 }
 </script>
+<script type="module" src="https://samir210-az.github.io/menyu/analytics.js"></script>
 </body>
 </html>
