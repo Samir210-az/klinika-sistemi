@@ -207,6 +207,12 @@ a{color:inherit;text-decoration:none}
 .list{display:flex;flex-direction:column;gap:10px}
 .item-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:#fdfcfa;transition:.2s;cursor:pointer;animation:fadeUp .35s ease backwards}
 .item-card:hover{border-color:var(--teal-light);box-shadow:var(--shadow);transform:translateX(3px)}
+#patientsList .item-card,#recentPatientsList .item-card{border-left:5px solid var(--lavender);background:linear-gradient(90deg,rgba(142,124,195,.16),rgba(142,124,195,.02) 55%)}
+#sessionsList .item-card,#todaySessionsList .item-card{border-left:5px solid var(--teal);background:linear-gradient(90deg,rgba(21,94,99,.14),rgba(21,94,99,.02) 55%)}
+#staffList .item-card{border-left:5px solid var(--amber);background:linear-gradient(90deg,rgba(232,163,61,.18),rgba(232,163,61,.02) 55%)}
+#paymentsList .item-card{border-left:5px solid var(--success);background:linear-gradient(90deg,rgba(76,154,122,.18),rgba(76,154,122,.02) 55%)}
+#expensesList .item-card{border-left:5px solid var(--danger);background:linear-gradient(90deg,rgba(217,108,90,.18),rgba(217,108,90,.02) 55%)}
+#auditLogList .item-card{border-left:5px solid var(--ink-soft);background:linear-gradient(90deg,rgba(91,104,100,.1),rgba(91,104,100,.01) 55%)}
 .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
 .avatar.staff{background:linear-gradient(135deg,var(--amber),var(--lavender))}
 .item-main{flex:1;min-width:0}
