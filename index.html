@@ -386,6 +386,9 @@ a{color:inherit;text-decoration:none}
         <div><h2>Pasiyentlər</h2><div class="sub">Bütün pasiyentlərin qeydiyyat siyahısı</div></div>
         <button class="btn btn-primary" onclick="openPatientModal()">+ Yeni pasiyent</button>
       </div>
+      <div class="stats">
+        <div class="stat-card teal"><div class="n" id="patientsTotalCount">0</div><div class="l">Ümumi pasiyent</div></div>
+      </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="patientSearch" placeholder="Ad, telefon və ya səbəbə görə axtar..." oninput="renderPatients()"></div></div>
         <div class="list" id="patientsList"></div>
@@ -1056,6 +1059,7 @@ window.deletePatient = function(){
 window.renderPatients = function(){
   const q = (document.getElementById('patientSearch')?.value||'').toLowerCase();
   const list = document.getElementById('patientsList');
+  document.getElementById('patientsTotalCount').textContent = Object.keys(window.DB.patients).length;
   const entries = Object.entries(window.DB.patients).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
   const filtered = entries.filter(([id,p])=> !q || (p.name||'').toLowerCase().includes(q) || (p.phone||'').includes(q) || (p.reason||'').toLowerCase().includes(q));
   if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🌱</div><p>Hələ pasiyent yoxdur. "+ Yeni pasiyent" düyməsi ilə başlayın.</p></div>`; return; }
