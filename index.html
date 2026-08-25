@@ -209,12 +209,22 @@ a{color:inherit;text-decoration:none}
 .item-card:hover{border-color:var(--teal-light);box-shadow:var(--shadow);transform:translateX(3px)}
 #patientsList .item-card,#recentPatientsList .item-card{border-left:5px solid var(--lavender);background:linear-gradient(90deg,rgba(142,124,195,.16),rgba(142,124,195,.02) 55%)}
 #sessionsList .item-card,#todaySessionsList .item-card{border-left:5px solid var(--teal);background:linear-gradient(90deg,rgba(21,94,99,.14),rgba(21,94,99,.02) 55%)}
-#staffList .item-card{border-left:5px solid var(--amber);background:linear-gradient(90deg,rgba(232,163,61,.18),rgba(232,163,61,.02) 55%)}
 #paymentsList .item-card{border-left:5px solid var(--success);background:linear-gradient(90deg,rgba(76,154,122,.18),rgba(76,154,122,.02) 55%)}
 #expensesList .item-card{border-left:5px solid var(--danger);background:linear-gradient(90deg,rgba(217,108,90,.18),rgba(217,108,90,.02) 55%)}
 #auditLogList .item-card{border-left:5px solid var(--ink-soft);background:linear-gradient(90deg,rgba(91,104,100,.1),rgba(91,104,100,.01) 55%)}
 .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--lavender));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
 .avatar.staff{background:linear-gradient(135deg,var(--amber),var(--lavender))}
+#staffList{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.staff-card{border-radius:16px;padding:1.15rem 1.25rem;color:#fff;box-shadow:0 8px 20px rgba(11,61,63,.22);cursor:pointer;transition:.2s;display:flex;flex-direction:column;gap:10px;animation:fadeUp .35s ease backwards}
+.staff-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(11,61,63,.3)}
+.staff-card.pinned{border:2px solid rgba(255,255,255,.55)}
+.staff-card .sc-pin{font-size:.68rem;font-weight:700;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:100px;align-self:flex-start;letter-spacing:.02em}
+.staff-card .sc-top{display:flex;align-items:center;gap:12px}
+.staff-card .sc-avatar{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
+.staff-card .sc-name{font-weight:700;font-size:1rem;line-height:1.3}
+.staff-card .sc-role{font-size:.8rem;opacity:.92;margin-top:2px}
+.staff-card .sc-phone{font-size:.83rem;opacity:.92}
+.staff-card .sc-badge{align-self:flex-start;background:rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:.72rem;padding:4px 10px;border-radius:100px}
 .item-main{flex:1;min-width:0}
 .item-main .t{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-main .s{font-size:.76rem;color:var(--ink-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -695,10 +705,7 @@ a{color:inherit;text-decoration:none}
       <div class="field"><label>Telefon</label><input id="stPhone" placeholder="+994 XX XXX XX XX"></div>
     </div>
     <div class="grid2">
-      <div class="field"><label>Vəzifə / İxtisas</label><select id="stRole">
-        <option>Psixoloq</option><option>ABA terapevt</option><option>Loqoped</option><option>Defektoloq</option>
-        <option>Erkən müdaxilə mütəxəssisi</option><option>Administrator</option><option>Digər</option>
-      </select></div>
+      <div class="field"><label>Vəzifə / İxtisas</label><input id="stRole" placeholder="Məs. Mərkəzin direktoru, klinik psixoloq"></div>
       <div class="field"><label>Seans başına standart haqq (₼)</label><input id="stFee" type="number" step="0.01" placeholder="Məs. 15.00"></div>
     </div>
     <div class="field"><label>Qeydlər</label><textarea id="stNotes" placeholder="Əlavə qeydlər..."></textarea></div>
@@ -1149,10 +1156,10 @@ window.openStaffModal = function(id){
   document.getElementById('staffModalTitle').textContent = id?'Əməkdaşı redaktə et':'Yeni əməkdaş';
   if(id){
     const s = window.DB.staff[id];
-    stName.value=s.name||''; stPhone.value=s.phone||''; stRole.value=s.role||'Psixoloq'; stFee.value=s.defaultFee||''; stNotes.value=s.notes||'';
+    stName.value=s.name||''; stPhone.value=s.phone||''; stRole.value=s.role||''; stFee.value=s.defaultFee||''; stNotes.value=s.notes||'';
     stAccessLevel.value=s.accessLevel||'staff'; stPin.value=s.pin||'';
   } else {
-    stName.value=stPhone.value=stFee.value=stNotes.value=stPin.value=''; stRole.value='Psixoloq'; stAccessLevel.value='staff';
+    stName.value=stPhone.value=stFee.value=stNotes.value=stPin.value=stRole.value=''; stAccessLevel.value='staff';
   }
   openModal('modalStaff');
 }
@@ -1184,18 +1191,44 @@ window.deleteStaff = function(){
 }
 function isAdmin(){ return window.currentUser && window.currentUser.role === 'admin'; }
 function staffSessionCount(sid){ return Object.values(window.DB.sessions).filter(s=>s.staffId===sid).length; }
+const STAFF_PALETTE = [
+  ['var(--teal)','var(--teal-light)'],
+  ['var(--lavender)','var(--lavender-light)'],
+  ['var(--amber)','var(--amber-light)'],
+  ['var(--success)','#6BB596'],
+  ['var(--danger)','#E8917F']
+];
+function isPinnedStaff(name){
+  const n = (name||'').toLowerCase();
+  return n.includes('nahidə') && n.includes('axundov');
+}
 window.renderStaff = function(){
   const q = (document.getElementById('staffSearch')?.value||'').toLowerCase();
   const list = document.getElementById('staffList');
-  const entries = Object.entries(window.DB.staff).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+  const entries = Object.entries(window.DB.staff).sort((a,b)=>{
+    const aPin = isPinnedStaff(a[1].name), bPin = isPinnedStaff(b[1].name);
+    if(aPin && !bPin) return -1;
+    if(bPin && !aPin) return 1;
+    return (a[1].name||'').localeCompare(b[1].name||'');
+  });
   const filtered = entries.filter(([id,s])=> !q || (s.name||'').toLowerCase().includes(q) || (s.role||'').toLowerCase().includes(q));
   if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🩺</div><p>Hələ əməkdaş yoxdur. "+ Yeni əməkdaş" düyməsi ilə başlayın.</p></div>`; return; }
-  list.innerHTML = filtered.map(([id,s],i)=>`
-    <div class="item-card" style="animation-delay:${i*0.03}s" onclick="openStaffDetail('${id}')">
-      <div class="avatar staff">${initials(s.name)}</div>
-      <div class="item-main"><div class="t">${s.name} ${s.accessLevel==='admin'?'<span class=\"badge badge-lav\" style=\"margin-left:6px\">Admin</span>':''}</div><div class="s">${s.role||''} ${s.phone?'· '+s.phone:''}</div></div>
-      <span class="badge badge-amber">${staffSessionCount(id)} seans</span>
-    </div>`).join('');
+  list.innerHTML = filtered.map(([id,s],i)=>{
+    const pinned = isPinnedStaff(s.name);
+    const [c1,c2] = pinned ? ['var(--teal-deep)','var(--amber)'] : STAFF_PALETTE[i % STAFF_PALETTE.length];
+    return `<div class="staff-card${pinned?' pinned':''}" style="background:linear-gradient(135deg,${c1},${c2})" onclick="openStaffDetail('${id}')">
+      ${pinned?'<div class="sc-pin">👑 Mərkəzin rəhbərliyi</div>':''}
+      <div class="sc-top">
+        <div class="sc-avatar">${initials(s.name)}</div>
+        <div style="min-width:0">
+          <div class="sc-name">${s.name} ${s.accessLevel==='admin'?'<span class="badge" style="background:rgba(255,255,255,.25);color:#fff;margin-left:6px">Admin</span>':''}</div>
+          <div class="sc-role">${s.role||'Vəzifə qeyd olunmayıb'}</div>
+        </div>
+      </div>
+      ${s.phone?`<div class="sc-phone">📞 ${s.phone}</div>`:''}
+      <span class="sc-badge">${staffSessionCount(id)} seans</span>
+    </div>`;
+  }).join('');
 }
 window.openStaffDetail = function(id){
   currentStaffId = id;
