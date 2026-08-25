@@ -861,7 +861,7 @@ window.refreshLoginOptions = function(){
   const staffOpts = Object.entries(window.DB.staff||{})
     .filter(([id,s]) => s.pin)
     .sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
-    .map(([id,s])=>`<option value="staff:${id}">${s.accessLevel==='admin'?'🔑':'👤'} ${s.name}</option>`).join('');
+    .map(([id,s])=>`<option value="staff:${id}">${s.accessLevel==='admin'?'🔑':'👤'} ${esc(s.name)}</option>`).join('');
   sel.innerHTML = `<option value="admin_master">🔑 Admin (Sistem sahibi)</option>` + staffOpts;
   if([...sel.options].some(o=>o.value===current)) sel.value = current;
 }
@@ -966,6 +966,10 @@ window.showFbError = function(label, err){
 }
 function initials(name){
   return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+function esc(str){
+  if(str===null || str===undefined) return '';
+  return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 function fmtDate(d){
   if(!d) return '-';
@@ -1079,7 +1083,7 @@ window.renderPatients = function(){
   list.innerHTML = filtered.map(([id,p],i)=>`
     <div class="item-card" style="animation-delay:${i*0.03}s" onclick="openPatientDetail('${id}')">
       <div class="avatar">${initials(p.name)}</div>
-      <div class="item-main"><div class="t">${p.name}</div><div class="s">${p.phone||'Telefon yoxdur'} · ${p.age?p.age+' yaş':'yaş qeyd olunmayıb'}</div></div>
+      <div class="item-main"><div class="t">${esc(p.name)}</div><div class="s">${esc(p.phone)||'Telefon yoxdur'} · ${p.age?p.age+' yaş':'yaş qeyd olunmayıb'}</div></div>
       <span class="badge badge-teal">${sessionCountFor(id)} seans</span>
     </div>`).join('');
 }
@@ -1093,9 +1097,9 @@ window.openPatientDetail = function(id){
   document.getElementById('pdName').textContent = p.name;
   document.getElementById('pdMeta').textContent = `${p.phone||'Telefon yoxdur'} · ${p.age?p.age+' yaş':'-'} ${p.gender?'· '+p.gender:''}`;
   document.getElementById('pdIntakeGrid').innerHTML = `
-    <div class="field"><label>Müraciət səbəbi</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.reason||'—'}</div></div>
-    <div class="field"><label>Referans</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.referral||'—'}</div></div>
-    <div class="field" style="grid-column:1/-1"><label>İlkin qeydlər</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${p.notes||'—'}</div></div>`;
+    <div class="field"><label>Müraciət səbəbi</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${esc(p.reason)||'—'}</div></div>
+    <div class="field"><label>Referans</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${esc(p.referral)||'—'}</div></div>
+    <div class="field" style="grid-column:1/-1"><label>İlkin qeydlər</label><div style="padding:11px 14px;background:#fdfcfa;border:1px solid var(--border);border-radius:11px;font-size:.88rem;min-height:44px">${esc(p.notes)||'—'}</div></div>`;
   switchPdTab('sessions');
   renderPatientDetailLists();
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -1109,11 +1113,11 @@ function renderPatientDetailLists(){
   const st = document.getElementById('pdSessionsTimeline');
   st.innerHTML = sess.length? sess.map(([id,s])=>`
     <div class="tl-item">
-      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div>
+      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${esc(s.type)}</div>
       <div class="tl-body">
-        ${(staffName(s.staffId)||s.therapist)?`<div style="font-weight:700;margin-bottom:4px">👤 ${staffName(s.staffId)||s.therapist}</div>`:''}
-        <div>${s.note||'Qeyd yoxdur'}</div>
-        ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${s.next}</div>`:''}
+        ${(staffName(s.staffId)||s.therapist)?`<div style="font-weight:700;margin-bottom:4px">👤 ${esc(staffName(s.staffId)||s.therapist)}</div>`:''}
+        <div>${esc(s.note)||'Qeyd yoxdur'}</div>
+        ${s.next?`<div style="margin-top:6px;color:var(--teal);font-weight:600">→ Növbəti: ${esc(s.next)}</div>`:''}
         <div class="no-print" style="margin-top:8px;display:flex;gap:8px">
           <button class="btn btn-outline btn-sm admin-only" onclick="openSessionModal('${currentPatientId}','${id}')">✏️</button>
           <button class="btn btn-danger btn-sm admin-only" onclick="removeSession('${id}')">🗑️</button>
@@ -1125,7 +1129,7 @@ function renderPatientDetailLists(){
     <div class="tl-item">
       <div class="tl-date">${fmtDate(p.date)}</div>
       <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> · ${p.type||''} ${p.note?'· '+p.note:''}</div>
+        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> · ${esc(p.type)} ${p.note?'· '+esc(p.note):''}</div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
           <button class="btn btn-lav btn-sm no-print" onclick="printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
@@ -1258,11 +1262,11 @@ window.renderStaff = function(){
       <div class="sc-top">
         <div class="sc-avatar">${initials(s.name)}</div>
         <div style="min-width:0">
-          <div class="sc-name">${s.name} ${s.accessLevel==='admin'?'<span class="badge" style="background:rgba(255,255,255,.25);color:#fff;margin-left:6px">Admin</span>':''}</div>
-          <div class="sc-role">${s.role||'Vəzifə qeyd olunmayıb'}</div>
+          <div class="sc-name">${esc(s.name)} ${s.accessLevel==='admin'?'<span class="badge" style="background:rgba(255,255,255,.25);color:#fff;margin-left:6px">Admin</span>':''}</div>
+          <div class="sc-role">${esc(s.role)||'Vəzifə qeyd olunmayıb'}</div>
         </div>
       </div>
-      ${s.phone?`<div class="sc-phone" onclick="event.stopPropagation();sendStaffScheduleWhatsApp('${id}')" title="WhatsApp-da sabahkı seansları göndər"><span class="sc-phone-ic">📱</span> ${s.phone}</div>`:''}
+      ${s.phone?`<div class="sc-phone" onclick="event.stopPropagation();sendStaffScheduleWhatsApp('${id}')" title="WhatsApp-da sabahkı seansları göndər"><span class="sc-phone-ic">📱</span> ${esc(s.phone)}</div>`:''}
       <span class="sc-badge">${staffSessionCount(id)} seans</span>
     </div>`;
   }).join('');
@@ -1296,10 +1300,10 @@ function renderStaffDetailLists(){
   st.innerHTML = sess.length? sess.map(([id,s])=>{
     const pat = window.DB.patients[s.patientId];
     return `<div class="tl-item">
-      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${s.type||''}</div>
+      <div class="tl-date">${fmtDate(s.date)} ${s.time||''} · ${esc(s.type)}</div>
       <div class="tl-body">
-        <div style="font-weight:700;margin-bottom:4px">🧑 ${pat?.name||'Silinmiş pasiyent'}</div>
-        <div>${s.note||'Qeyd yoxdur'}</div>
+        <div style="font-weight:700;margin-bottom:4px">🧑 ${esc(pat?.name)||'Silinmiş pasiyent'}</div>
+        <div>${esc(s.note)||'Qeyd yoxdur'}</div>
         ${s.staffFee?`<div style="margin-top:6px;color:var(--teal);font-weight:600">💰 ${Number(s.staffFee).toFixed(2)} ₼</div>`:''}
       </div>
     </div>`;
@@ -1309,7 +1313,7 @@ function renderStaffDetailLists(){
     <div class="tl-item">
       <div class="tl-date">${fmtDate(p.date)}</div>
       <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> ${p.note?'· '+p.note:''}</div>
+        <div><span class="mono" style="font-weight:700;font-size:1rem">${Number(p.amount||0).toFixed(2)} ₼</span> ${p.note?'· '+esc(p.note):''}</div>
         <button class="btn btn-danger btn-sm no-print admin-only" onclick="removeStaffPayment('${id}')">🗑️</button>
       </div>
     </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş edilməyib</p></div>`;
@@ -1361,7 +1365,7 @@ window.saveStaffPayment = function(){
 
 function fillStaffSelect(selectEl, presetId){
   const opts = Object.entries(window.DB.staff).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
-    .map(([id,s])=>`<option value="${id}" ${id===presetId?'selected':''}>${s.name}</option>`).join('');
+    .map(([id,s])=>`<option value="${id}" ${id===presetId?'selected':''}>${esc(s.name)}</option>`).join('');
   selectEl.innerHTML = `<option value="">Seçin</option>` + opts;
 }
 window.onStaffPickedInSession = function(){
@@ -1375,7 +1379,7 @@ window.onStaffPickedInSession = function(){
 /* ============ SESSIONS ============ */
 function fillPatientSelect(selectEl, presetId){
   const opts = Object.entries(window.DB.patients).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
-    .map(([id,p])=>`<option value="${id}" ${id===presetId?'selected':''}>${p.name}</option>`).join('');
+    .map(([id,p])=>`<option value="${id}" ${id===presetId?'selected':''}>${esc(p.name)}</option>`).join('');
   selectEl.innerHTML = `<option value="">Seçin</option>` + opts;
 }
 window.openSessionModal = function(presetPatientId, editId){
@@ -1408,7 +1412,7 @@ function fillSessionStaffFilter(){
   if(!sel) return;
   const current = sel.value;
   const opts = Object.entries(window.DB.staff||{}).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
-    .map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('');
+    .map(([id,s])=>`<option value="${id}">${esc(s.name)}</option>`).join('');
   sel.innerHTML = `<option value="">Bütün əməkdaşlar</option>` + opts;
   if([...sel.options].some(o=>o.value===current)) sel.value = current;
 }
@@ -1441,8 +1445,8 @@ window.renderSessions = function(){
     const sname = staffName(s.staffId);
     return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${s.patientId}')">
       <div class="avatar">${initials(p?.name)}</div>
-      <div class="item-main"><div class="t">${p?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(s.date)} ${s.time||''} · ${s.type||''} ${sname?'· 👤 '+sname:''}</div></div>
-      <span class="badge badge-lav">${s.type||''}</span>
+      <div class="item-main"><div class="t">${esc(p?.name)||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(s.date)} ${s.time||''} · ${esc(s.type)} ${sname?'· 👤 '+esc(sname):''}</div></div>
+      <span class="badge badge-lav">${esc(s.type)}</span>
     </div>`;
   }).join('');
 }
@@ -1523,7 +1527,7 @@ window.renderPayments = function(){
     const pat = window.DB.patients[p.patientId];
     return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${p.patientId}')">
       <div class="avatar">${initials(pat?.name)}</div>
-      <div class="item-main"><div class="t">${pat?.name||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(p.date)} · ${p.type||''} ${p.note?'· '+p.note:''}</div></div>
+      <div class="item-main"><div class="t">${esc(pat?.name)||'Silinmiş pasiyent'}</div><div class="s">${fmtDate(p.date)} · ${esc(p.type)} ${p.note?'· '+esc(p.note):''}</div></div>
       <span class="mono" style="font-weight:700">${Number(p.amount||0).toFixed(2)} ₼</span>
       <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
       <button class="btn btn-lav btn-icon" onclick="event.stopPropagation();printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
@@ -1609,7 +1613,7 @@ window.renderExpenses = function(){
   list.innerHTML = filtered.map(([id,e],i)=>`
     <div class="item-card" style="animation-delay:${i*0.02}s;cursor:default" onclick="openExpenseModal('${id}')">
       <div class="avatar" style="background:linear-gradient(135deg,var(--danger),var(--amber))">🧾</div>
-      <div class="item-main"><div class="t">${e.title}</div><div class="s">${fmtDate(e.date)} · ${e.category||''} ${e.note?'· '+e.note:''}</div></div>
+      <div class="item-main"><div class="t">${esc(e.title)}</div><div class="s">${fmtDate(e.date)} · ${esc(e.category)} ${e.note?'· '+esc(e.note):''}</div></div>
       <span class="mono" style="font-weight:700;color:var(--danger)">${Number(e.amount||0).toFixed(2)} ₼</span>
       <button class="btn btn-danger btn-icon no-print admin-only" onclick="event.stopPropagation();removeExpense('${id}')">🗑️</button>
     </div>`).join('');
@@ -1650,7 +1654,7 @@ function fillStaffFilterSelect(){
   if(!sel) return;
   const current = sel.value;
   const opts = Object.entries(window.DB.staff||{}).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
-    .map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('');
+    .map(([id,s])=>`<option value="${id}">${esc(s.name)}</option>`).join('');
   sel.innerHTML = `<option value="">Bütün əməkdaşlar</option>` + opts;
   if([...sel.options].some(o=>o.value===current)) sel.value = current;
 }
@@ -1678,7 +1682,7 @@ window.renderReports = function(){
   expenses.forEach(([id,e])=>{ byCat[e.category||'Digər'] = (byCat[e.category||'Digər']||0)+Number(e.amount||0); });
   if(staffPayTotal>0) byCat['Əməkdaş ödənişləri'] = staffPayTotal;
   const catRows = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
-  document.querySelector('#repExpenseTable tbody').innerHTML = catRows.length ? catRows.map(([cat,amt])=>`<tr><td>${cat}</td><td class="mono">${amt.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="2" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə xərc qeydə alınmayıb</td></tr>`;
+  document.querySelector('#repExpenseTable tbody').innerHTML = catRows.length ? catRows.map(([cat,amt])=>`<tr><td>${esc(cat)}</td><td class="mono">${amt.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="2" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə xərc qeydə alınmayıb</td></tr>`;
 
   // staff sessions/payments in range (filtrə uyğun)
   const allStaffEntries = staffFilter ? Object.entries(window.DB.staff).filter(([sid])=>sid===staffFilter) : Object.entries(window.DB.staff);
@@ -1690,7 +1694,7 @@ window.renderReports = function(){
     return {sid, name:s.name, cnt, earned, paid};
   }).filter(r=>r.cnt>0 || r.paid>0 || staffFilter).sort((a,b)=>b.cnt-a.cnt);
   document.getElementById('repStaffTableTitle').textContent = staffFilter ? ('🩺 Ödənişlər — ' + (window.DB.staff[staffFilter]?.name||'')) : '🩺 Əməkdaşlara ödənişlər';
-  document.querySelector('#repStaffTable tbody').innerHTML = staffRows.length ? staffRows.map(r=>`<tr><td>${r.name}</td><td>${r.cnt}</td><td class="mono">${r.paid.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="3" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə məlumat yoxdur</td></tr>`;
+  document.querySelector('#repStaffTable tbody').innerHTML = staffRows.length ? staffRows.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.cnt}</td><td class="mono">${r.paid.toFixed(2)} ₼</td></tr>`).join('') : `<tr><td colspan="3" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə məlumat yoxdur</td></tr>`;
 
   // tək əməkdaş xülasə kartı
   const singleCard = document.getElementById('repStaffSingleCard');
@@ -1707,7 +1711,7 @@ window.renderReports = function(){
       .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     document.querySelector('#repStaffSessionsTable tbody').innerHTML = staffSessRows.length ? staffSessRows.map(x=>{
       const pname = window.DB.patients[x.patientId]?.name || 'Silinmiş pasiyent';
-      return `<tr><td>${fmtDate(x.date)}</td><td>${pname}</td><td>${x.type||''}</td><td class="mono">${x.staffFee?Number(x.staffFee).toFixed(2)+' ₼':'-'}</td></tr>`;
+      return `<tr><td>${fmtDate(x.date)}</td><td>${esc(pname)}</td><td>${esc(x.type)}</td><td class="mono">${x.staffFee?Number(x.staffFee).toFixed(2)+' ₼':'-'}</td></tr>`;
     }).join('') : `<tr><td colspan="4" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə seans qeydə alınmayıb</td></tr>`;
     singleCard.style.display = 'block';
   } else {
@@ -1718,7 +1722,7 @@ window.renderReports = function(){
   const patRows = pays.sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
   document.querySelector('#repPatientTable tbody').innerHTML = patRows.length ? patRows.map(([id,p])=>{
     const pat = window.DB.patients[p.patientId];
-    return `<tr><td>${pat?.name||'-'}</td><td>${fmtDate(p.date)}</td><td class="mono">${Number(p.amount||0).toFixed(2)} ₼</td><td><span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span></td></tr>`;
+    return `<tr><td>${esc(pat?.name)||'-'}</td><td>${fmtDate(p.date)}</td><td class="mono">${Number(p.amount||0).toFixed(2)} ₼</td><td><span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span></td></tr>`;
   }).join('') : `<tr><td colspan="4" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə ödəniş yoxdur</td></tr>`;
 }
 
@@ -1727,7 +1731,7 @@ window.printReportBlock = function(title, innerHtml){
   const logoUrl = new URL('logo.png', window.location.href).href;
   const win = window.open('', '_blank', 'width=650,height=800');
   if(!win){ toast('Pəncərə açıla bilmədi — brauzer bloklayıb ola bilər'); return; }
-  win.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>${title}</title>
+  win.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>${esc(title)}</title>
     <style>
       body{font-family:'Segoe UI',Arial,sans-serif;padding:28px;color:#1B2622;max-width:650px;margin:0 auto}
       .header{text-align:center;margin-bottom:20px}
@@ -1751,7 +1755,7 @@ window.printReportBlock = function(title, innerHtml){
         <h1>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</h1>
         <p>Maliyyə hesabatı</p>
       </div>
-      <h2>${title}</h2>
+      <h2>${esc(title)}</h2>
       <div class="period">Dövr: ${reportPeriodLabel()}${window.currentUser?(' · Çıxaran: '+window.currentUser.name):''}</div>
       <hr>
       ${innerHtml}
@@ -1807,7 +1811,7 @@ function renderDashboard(){
     const sname = staffName(s.staffId);
     return `<div class="item-card" onclick="openPatientDetail('${s.patientId}')">
       <div class="avatar">${initials(p?.name)}</div>
-      <div class="item-main"><div class="t">${p?.name||'-'}</div><div class="s">${s.time||'saat qeyd olunmayıb'} · ${s.type||''} ${sname?'· 👤 '+sname:''}</div></div>
+      <div class="item-main"><div class="t">${esc(p?.name)||'-'}</div><div class="s">${s.time||'saat qeyd olunmayıb'} · ${esc(s.type)} ${sname?'· 👤 '+esc(sname):''}</div></div>
       <span class="badge badge-teal">Bu gün</span>
     </div>`;
   }).join('') : `<div class="empty"><div class="ic">☀️</div><p>Bu gün planlanan seans yoxdur</p></div>`;
@@ -1817,7 +1821,7 @@ function renderDashboard(){
   rpl.innerHTML = recent.length ? recent.map(([id,p])=>`
     <div class="item-card" onclick="openPatientDetail('${id}')">
       <div class="avatar">${initials(p.name)}</div>
-      <div class="item-main"><div class="t">${p.name}</div><div class="s">${p.reason||'Səbəb qeyd olunmayıb'}</div></div>
+      <div class="item-main"><div class="t">${esc(p.name)}</div><div class="s">${esc(p.reason)||'Səbəb qeyd olunmayıb'}</div></div>
     </div>`).join('') : `<div class="empty"><div class="ic">🌱</div><p>Hələ pasiyent yoxdur</p></div>`;
 }
 
@@ -1834,8 +1838,8 @@ window.renderAuditLog = function(){
     return `<div class="item-card" style="cursor:default">
       <div class="avatar" style="background:linear-gradient(135deg,var(--teal),var(--lavender));font-size:.8rem">${initials(l.user)}</div>
       <div class="item-main">
-        <div class="t">${l.user||'Naməlum'} <span class="badge ${actionColor}" style="margin-left:6px">${l.action}</span> · ${l.entity}</div>
-        <div class="s">${l.name?l.name+' — ':''}${l.detail||''} · ${fmtDate(l.date)} ${l.time||''}</div>
+        <div class="t">${esc(l.user)||'Naməlum'} <span class="badge ${actionColor}" style="margin-left:6px">${esc(l.action)}</span> · ${esc(l.entity)}</div>
+        <div class="s">${l.name?esc(l.name)+' — ':''}${esc(l.detail)} · ${fmtDate(l.date)} ${l.time||''}</div>
       </div>
     </div>`;
   }).join('');
@@ -1889,10 +1893,10 @@ window.printSinglePayment = function(id){
       </div>
       <hr>
       <table>
-        <tr><td>Pasiyent</td><td>${pat?.name||'-'}</td></tr>
+        <tr><td>Pasiyent</td><td>${esc(pat?.name)||'-'}</td></tr>
         <tr><td>Tarix</td><td>${fmtDate(p.date)}</td></tr>
-        <tr><td>Ödəniş növü</td><td>${p.type||'-'}</td></tr>
-        ${p.note?`<tr><td>Qeyd</td><td>${p.note}</td></tr>`:''}
+        <tr><td>Ödəniş növü</td><td>${esc(p.type)||'-'}</td></tr>
+        ${p.note?`<tr><td>Qeyd</td><td>${esc(p.note)}</td></tr>`:''}
       </table>
       <div class="amount">${Number(p.amount||0).toFixed(2)} ₼</div>
       <div class="status ${p.status==='owed'?'owed':'paid'}">${p.status==='owed'?'Borc (gözlənilir)':'Ödənilib'}</div>
