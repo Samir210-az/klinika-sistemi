@@ -223,8 +223,9 @@ a{color:inherit;text-decoration:none}
 .staff-card .sc-avatar{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
 .staff-card .sc-name{font-weight:700;font-size:1rem;line-height:1.3}
 .staff-card .sc-role{font-size:.8rem;opacity:.92;margin-top:2px}
-.staff-card .sc-phone{font-size:.83rem;opacity:.92;cursor:pointer;text-decoration:underline;text-underline-offset:3px;width:fit-content}
-.staff-card .sc-phone:hover{opacity:1}
+.staff-card .sc-phone{display:flex;align-items:center;gap:9px;cursor:pointer;width:fit-content;background:#25D366;color:#fff;font-weight:700;font-size:.92rem;padding:10px 16px;border-radius:100px;box-shadow:0 6px 16px rgba(0,0,0,.18);transition:.2s}
+.staff-card .sc-phone:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(0,0,0,.24)}
+.staff-card .sc-phone .sc-phone-ic{font-size:1.15rem}
 .staff-card .sc-badge{align-self:flex-start;background:rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:.72rem;padding:4px 10px;border-radius:100px}
 .item-main{flex:1;min-width:0}
 .item-main .t{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1255,7 +1256,7 @@ window.renderStaff = function(){
           <div class="sc-role">${s.role||'Vəzifə qeyd olunmayıb'}</div>
         </div>
       </div>
-      ${s.phone?`<div class="sc-phone" onclick="event.stopPropagation();sendStaffScheduleWhatsApp('${id}')" title="WhatsApp-da sabahkı seansları göndər">📞 ${s.phone} · Sabahkı seanslar</div>`:''}
+      ${s.phone?`<div class="sc-phone" onclick="event.stopPropagation();sendStaffScheduleWhatsApp('${id}')" title="WhatsApp-da sabahkı seansları göndər"><span class="sc-phone-ic">📱</span> ${s.phone}</div>`:''}
       <span class="sc-badge">${staffSessionCount(id)} seans</span>
     </div>`;
   }).join('');
