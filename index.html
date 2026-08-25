@@ -223,7 +223,8 @@ a{color:inherit;text-decoration:none}
 .staff-card .sc-avatar{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
 .staff-card .sc-name{font-weight:700;font-size:1rem;line-height:1.3}
 .staff-card .sc-role{font-size:.8rem;opacity:.92;margin-top:2px}
-.staff-card .sc-phone{font-size:.83rem;opacity:.92}
+.staff-card .sc-phone{font-size:.83rem;opacity:.92;cursor:pointer;text-decoration:underline;text-underline-offset:3px;width:fit-content}
+.staff-card .sc-phone:hover{opacity:1}
 .staff-card .sc-badge{align-self:flex-start;background:rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:.72rem;padding:4px 10px;border-radius:100px}
 .item-main{flex:1;min-width:0}
 .item-main .t{font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1202,6 +1203,35 @@ function isPinnedStaff(name){
   const n = (name||'').toLowerCase();
   return n.includes('nahidə') && n.includes('axundov');
 }
+function normalizePhoneForWa(phone){
+  let d = (phone||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.startsWith('994')) return d;
+  if(d.startsWith('0')) return '994'+d.slice(1);
+  return '994'+d;
+}
+window.sendStaffScheduleWhatsApp = function(staffId){
+  const s = window.DB.staff[staffId];
+  if(!s){ toast('Əməkdaş tapılmadı'); return; }
+  if(!s.phone){ toast('Bu əməkdaşın telefon nömrəsi qeyd olunmayıb'); return; }
+  const phone = normalizePhoneForWa(s.phone);
+  if(phone.length<10){ toast('Telefon nömrəsi düzgün formatda deyil'); return; }
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tISO = tomorrow.toISOString().slice(0,10);
+  const sess = Object.values(window.DB.sessions)
+    .filter(x=>x.staffId===staffId && x.date===tISO)
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  let text = `Salam ${s.name}! Sabahkı (${fmtDate(tISO)}) seanslarınız:\n`;
+  if(!sess.length){
+    text += 'Sabaha planlaşdırılan seans yoxdur.';
+  } else {
+    sess.forEach((x,i)=>{
+      const p = window.DB.patients[x.patientId];
+      text += `${i+1}. ${p?.name||'Naməlum pasiyent'} — ${x.time||'saat qeyd olunmayıb'}${x.type?', '+x.type:''}\n`;
+    });
+  }
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+}
 window.renderStaff = function(){
   const q = (document.getElementById('staffSearch')?.value||'').toLowerCase();
   const list = document.getElementById('staffList');
@@ -1225,7 +1255,7 @@ window.renderStaff = function(){
           <div class="sc-role">${s.role||'Vəzifə qeyd olunmayıb'}</div>
         </div>
       </div>
-      ${s.phone?`<div class="sc-phone">📞 ${s.phone}</div>`:''}
+      ${s.phone?`<div class="sc-phone" onclick="event.stopPropagation();sendStaffScheduleWhatsApp('${id}')" title="WhatsApp-da sabahkı seansları göndər">📞 ${s.phone} · Sabahkı seanslar</div>`:''}
       <span class="sc-badge">${staffSessionCount(id)} seans</span>
     </div>`;
   }).join('');
