@@ -498,8 +498,17 @@ a{color:inherit;text-decoration:none}
         <button class="btn btn-primary" onclick="openPaymentModal()">+ Yeni ödəniş</button>
       </div>
       <div class="stats">
-        <div class="stat-card teal"><div class="n mono" id="payTotalIn">0 ₼</div><div class="l">Cəmi ödənilib</div></div>
+        <div class="stat-card teal"><div class="n mono" id="payToday">0 ₼</div><div class="l">Bugünkü ödəniş</div></div>
+        <div class="stat-card lavender"><div class="n mono" id="payWeek">0 ₼</div><div class="l">Bu həftəki ödəniş</div></div>
+        <div class="stat-card amber"><div class="n mono" id="payMonth">0 ₼</div><div class="l">Bu ayki ödəniş</div></div>
+        <div class="stat-card success"><div class="n mono" id="payTotalIn">0 ₼</div><div class="l">Cəmi ödənilib</div></div>
         <div class="stat-card danger"><div class="n mono" id="payTotalOwed">0 ₼</div><div class="l">Cəmi borc</div></div>
+      </div>
+      <div class="period-tabs no-print">
+        <button class="tab-btn active" data-pperiod="all" onclick="setPaymentPeriod('all')">Hamısı</button>
+        <button class="tab-btn" data-pperiod="today" onclick="setPaymentPeriod('today')">Bu gün</button>
+        <button class="tab-btn" data-pperiod="week" onclick="setPaymentPeriod('week')">Bu həftə</button>
+        <button class="tab-btn" data-pperiod="month" onclick="setPaymentPeriod('month')">Bu ay</button>
       </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="paymentSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderPayments()"></div></div>
@@ -1399,19 +1408,43 @@ window.savePayment = function(){
   }
   closeModal('modalPayment');
 }
+let paymentPeriod = 'all';
+window.setPaymentPeriod = function(p){
+  paymentPeriod = p;
+  document.querySelectorAll('#view-payments .period-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-payments .period-tabs .tab-btn[data-pperiod="${p}"]`).classList.add('active');
+  renderPayments();
+}
 window.renderPayments = function(){
   const q = (document.getElementById('paymentSearch')?.value||'').toLowerCase();
   const list = document.getElementById('paymentsList');
   const entries = Object.entries(window.DB.payments).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
   const filtered = entries.filter(([id,p])=>{
     const pname = window.DB.patients[p.patientId]?.name || '';
-    return !q || pname.toLowerCase().includes(q);
+    const matchesQ = !q || pname.toLowerCase().includes(q);
+    const matchesPeriod = paymentPeriod==='all' ? true : !p.date ? false :
+      paymentPeriod==='today' ? p.date===todayISO() :
+      paymentPeriod==='week' ? isSameWeek(p.date) :
+      paymentPeriod==='month' ? isSameMonth(p.date) : true;
+    return matchesQ && matchesPeriod;
   });
-  let totalIn=0, totalOwed=0;
-  Object.values(window.DB.payments).forEach(p=>{ if(p.status==='owed') totalOwed+=Number(p.amount||0); else totalIn+=Number(p.amount||0); });
+  let totalIn=0, totalOwed=0, todayIn=0, weekIn=0, monthIn=0;
+  Object.values(window.DB.payments).forEach(p=>{
+    const amt = Number(p.amount||0);
+    if(p.status==='owed'){ totalOwed+=amt; return; }
+    totalIn+=amt;
+    if(p.date){
+      if(p.date===todayISO()) todayIn+=amt;
+      if(isSameWeek(p.date)) weekIn+=amt;
+      if(isSameMonth(p.date)) monthIn+=amt;
+    }
+  });
+  document.getElementById('payToday').textContent = todayIn.toFixed(2)+' ₼';
+  document.getElementById('payWeek').textContent = weekIn.toFixed(2)+' ₼';
+  document.getElementById('payMonth').textContent = monthIn.toFixed(2)+' ₼';
   document.getElementById('payTotalIn').textContent = totalIn.toFixed(2)+' ₼';
   document.getElementById('payTotalOwed').textContent = totalOwed.toFixed(2)+' ₼';
-  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">💳</div><p>Hələ ödəniş qeydi yoxdur</p></div>`; return; }
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">💳</div><p>Bu filtrə uyğun ödəniş yoxdur</p></div>`; return; }
   list.innerHTML = filtered.map(([id,p],i)=>{
     const pat = window.DB.patients[p.patientId];
     return `<div class="item-card" style="animation-delay:${i*0.02}s" onclick="openPatientDetail('${p.patientId}')">
