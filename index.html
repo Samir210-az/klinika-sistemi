@@ -422,7 +422,16 @@ a{color:inherit;text-decoration:none}
         <button class="btn btn-primary" onclick="openSessionModal()">+ Yeni seans</button>
       </div>
       <div class="panel">
-        <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="sessionSearch" placeholder="Pasiyent və ya əməkdaş adına görə axtar..." oninput="renderSessions()"></div></div>
+        <div class="panel-head">
+          <div class="search-box"><span class="ic">🔍</span><input id="sessionSearch" placeholder="Pasiyent və ya əməkdaş adına görə axtar..." oninput="renderSessions()"></div>
+          <select id="sessionStaffFilter" onchange="renderSessions()" style="padding:10px 14px;border-radius:11px;border:1.5px solid var(--border);font-size:.85rem;background:#fff;min-width:190px"><option value="">Bütün əməkdaşlar</option></select>
+        </div>
+        <div class="period-tabs no-print">
+          <button class="tab-btn active" data-speriod="all" onclick="setSessionPeriod('all')">Hamısı</button>
+          <button class="tab-btn" data-speriod="today" onclick="setSessionPeriod('today')">Bu gün</button>
+          <button class="tab-btn" data-speriod="week" onclick="setSessionPeriod('week')">Bu həftə</button>
+          <button class="tab-btn" data-speriod="month" onclick="setSessionPeriod('month')">Bu ay</button>
+        </div>
         <div class="list" id="sessionsList"></div>
       </div>
     </div>
@@ -547,6 +556,10 @@ a{color:inherit;text-decoration:none}
           <div class="stat-card success"><div class="n mono" id="repStaffPaid">0 ₼</div><div class="l">Ödənilib</div></div>
           <div class="stat-card danger"><div class="n mono" id="repStaffOwed">0 ₼</div><div class="l">Qalan borc</div></div>
         </div>
+        <table class="report-table" id="repStaffSessionsTable" style="margin-top:1.2rem">
+          <thead><tr><th>Tarix</th><th>Pasiyent</th><th>Növ</th><th>Haqq</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
 
       <div class="panel">
@@ -966,6 +979,7 @@ window.switchPdTab = function(tab){
 }
 
 let currentStaffId = null;
+let sessionPeriod = 'all';
 let sdTab = 'sessions';
 window.switchSdTab = function(tab){
   sdTab = tab;
@@ -1290,16 +1304,39 @@ window.saveSession = function(){
   else { window.__fbAddSession(val); logAction('Seans','Əlavə', patName, val.date); toast('Seans əlavə olundu ✓'); }
   closeModal('modalSession');
 }
+function fillSessionStaffFilter(){
+  const sel = document.getElementById('sessionStaffFilter');
+  if(!sel) return;
+  const current = sel.value;
+  const opts = Object.entries(window.DB.staff||{}).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''))
+    .map(([id,s])=>`<option value="${id}">${s.name}</option>`).join('');
+  sel.innerHTML = `<option value="">Bütün əməkdaşlar</option>` + opts;
+  if([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+window.setSessionPeriod = function(p){
+  sessionPeriod = p;
+  document.querySelectorAll('#view-sessions .period-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-sessions .period-tabs .tab-btn[data-speriod="${p}"]`).classList.add('active');
+  renderSessions();
+}
 window.renderSessions = function(){
+  fillSessionStaffFilter();
   const q = (document.getElementById('sessionSearch')?.value||'').toLowerCase();
+  const staffFilter = document.getElementById('sessionStaffFilter')?.value || '';
   const list = document.getElementById('sessionsList');
   const entries = Object.entries(window.DB.sessions).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
   const filtered = entries.filter(([id,s])=>{
     const pname = window.DB.patients[s.patientId]?.name || '';
     const sname = staffName(s.staffId) || '';
-    return !q || pname.toLowerCase().includes(q) || sname.toLowerCase().includes(q);
+    const matchesQ = !q || pname.toLowerCase().includes(q) || sname.toLowerCase().includes(q);
+    const matchesStaff = !staffFilter || s.staffId===staffFilter;
+    const matchesPeriod = sessionPeriod==='all' ? true : !s.date ? false :
+      sessionPeriod==='today' ? s.date===todayISO() :
+      sessionPeriod==='week' ? isSameWeek(s.date) :
+      sessionPeriod==='month' ? isSameMonth(s.date) : true;
+    return matchesQ && matchesStaff && matchesPeriod;
   });
-  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🗓️</div><p>Hələ seans qeydi yoxdur</p></div>`; return; }
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🗓️</div><p>Bu filtrə uyğun seans yoxdur</p></div>`; return; }
   list.innerHTML = filtered.map(([id,s],i)=>{
     const p = window.DB.patients[s.patientId];
     const sname = staffName(s.staffId);
@@ -1518,6 +1555,13 @@ window.renderReports = function(){
     document.getElementById('repStaffEarned').textContent = r.earned.toFixed(2)+' ₼';
     document.getElementById('repStaffPaid').textContent = r.paid.toFixed(2)+' ₼';
     document.getElementById('repStaffOwed').textContent = Math.max(0, r.earned - r.paid).toFixed(2)+' ₼';
+    const staffSessRows = Object.values(window.DB.sessions)
+      .filter(x=>x.staffId===staffFilter && inRange(x.date,start,end))
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    document.querySelector('#repStaffSessionsTable tbody').innerHTML = staffSessRows.length ? staffSessRows.map(x=>{
+      const pname = window.DB.patients[x.patientId]?.name || 'Silinmiş pasiyent';
+      return `<tr><td>${fmtDate(x.date)}</td><td>${pname}</td><td>${x.type||''}</td><td class="mono">${x.staffFee?Number(x.staffFee).toFixed(2)+' ₼':'-'}</td></tr>`;
+    }).join('') : `<tr><td colspan="4" style="color:var(--ink-soft);text-align:center;padding:1.2rem">Bu dövrdə seans qeydə alınmayıb</td></tr>`;
     singleCard.style.display = 'block';
   } else {
     singleCard.style.display = 'none';
@@ -1584,7 +1628,9 @@ window.printStaffSummary = function(){
     <div class="stat-row"><span>Seans sayı</span><b>${document.getElementById('repStaffSessions').textContent}</b></div>
     <div class="stat-row"><span>Qazandığı (seanslara görə)</span><b>${document.getElementById('repStaffEarned').textContent}</b></div>
     <div class="stat-row"><span>Ödənilib</span><b>${document.getElementById('repStaffPaid').textContent}</b></div>
-    <div class="stat-row"><span>Qalan borc</span><b>${document.getElementById('repStaffOwed').textContent}</b></div>`;
+    <div class="stat-row"><span>Qalan borc</span><b>${document.getElementById('repStaffOwed').textContent}</b></div>
+    <h2 style="font-size:.95rem;margin-top:18px">Seans tarixçəsi</h2>
+    ${document.getElementById('repStaffSessionsTable').outerHTML}`;
   printReportBlock(title, html);
 }
 
