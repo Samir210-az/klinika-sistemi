@@ -710,6 +710,10 @@ a{color:inherit;text-decoration:none}
       <div class="field"><label>Vəzifə / İxtisas</label><input id="stRole" placeholder="Məs. Mərkəzin direktoru, klinik psixoloq"></div>
       <div class="field"><label>Seans başına standart haqq (₼)</label><input id="stFee" type="number" step="0.01" placeholder="Məs. 15.00"></div>
     </div>
+    <div class="grid2">
+      <div class="field"><label>Müraciət adı (WhatsApp üçün)</label><input id="stAddressName" placeholder="Məs. Nahidə"></div>
+      <div class="field"><label>Müraciət forması</label><select id="stHonorific"><option value="">Seçilməyib</option><option value="xanım">Xanım</option><option value="bəy">Bəy</option></select></div>
+    </div>
     <div class="field"><label>Qeydlər</label><textarea id="stNotes" placeholder="Əlavə qeydlər..."></textarea></div>
     <div class="grid2 admin-only">
       <div class="field"><label>İcazə səviyyəsi</label><select id="stAccessLevel"><option value="staff">Əməkdaş (adi)</option><option value="admin">Admin</option></select></div>
@@ -1159,9 +1163,9 @@ window.openStaffModal = function(id){
   if(id){
     const s = window.DB.staff[id];
     stName.value=s.name||''; stPhone.value=s.phone||''; stRole.value=s.role||''; stFee.value=s.defaultFee||''; stNotes.value=s.notes||'';
-    stAccessLevel.value=s.accessLevel||'staff'; stPin.value=s.pin||'';
+    stAccessLevel.value=s.accessLevel||'staff'; stPin.value=s.pin||''; stAddressName.value=s.addressName||''; stHonorific.value=s.honorific||'';
   } else {
-    stName.value=stPhone.value=stFee.value=stNotes.value=stPin.value=stRole.value=''; stAccessLevel.value='staff';
+    stName.value=stPhone.value=stFee.value=stNotes.value=stPin.value=stRole.value=stAddressName.value=''; stAccessLevel.value='staff'; stHonorific.value='';
   }
   openModal('modalStaff');
 }
@@ -1171,6 +1175,7 @@ window.saveStaff = function(){
   const existing = window.DB.staff[editStaffId.value];
   const val = {
     name, phone:stPhone.value.trim(), role:stRole.value, defaultFee: stFee.value?parseFloat(stFee.value):null, notes:stNotes.value.trim(),
+    addressName: stAddressName.value.trim(), honorific: stHonorific.value,
     accessLevel: isAdmin() ? stAccessLevel.value : (existing?.accessLevel||'staff'),
     pin: isAdmin() ? stPin.value.trim() : (existing?.pin||''),
     createdAt: existing?.createdAt || Date.now()
@@ -1222,7 +1227,8 @@ window.sendStaffScheduleWhatsApp = function(staffId){
   const sess = Object.values(window.DB.sessions)
     .filter(x=>x.staffId===staffId && x.date===tISO)
     .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  let text = `Salam ${s.name}! Sabahkı (${fmtDate(tISO)}) seanslarınız:\n`;
+  const greetName = s.addressName ? `${s.addressName}${s.honorific?' '+s.honorific:''}` : s.name;
+  let text = `Salam ${greetName}! Sabahkı (${fmtDate(tISO)}) seanslarınız:\n`;
   if(!sess.length){
     text += 'Sabaha planlaşdırılan seans yoxdur.';
   } else {
