@@ -159,16 +159,13 @@ a{color:inherit;text-decoration:none}
 .stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
 .stat-card .n{font-family:'Fraunces',serif;font-size:2.1rem;font-weight:600;line-height:1}
 .stat-card .l{font-size:.78rem;color:var(--ink-soft);margin-top:6px;font-weight:600}
-.stat-card.teal{background:linear-gradient(135deg,rgba(21,94,99,.09),rgba(42,140,143,.02));border-color:rgba(21,94,99,.2)}
-.stat-card.lavender{background:linear-gradient(135deg,rgba(142,124,195,.11),rgba(181,167,222,.02));border-color:rgba(142,124,195,.22)}
-.stat-card.amber{background:linear-gradient(135deg,rgba(232,163,61,.13),rgba(242,197,114,.03));border-color:rgba(232,163,61,.24)}
-.stat-card.danger{background:linear-gradient(135deg,rgba(217,108,90,.11),rgba(217,108,90,.02));border-color:rgba(217,108,90,.22)}
-.stat-card.success{background:linear-gradient(135deg,rgba(76,154,122,.11),rgba(76,154,122,.02));border-color:rgba(76,154,122,.22)}
-.stat-card.teal .n{color:var(--teal)}
-.stat-card.lavender .n{color:var(--lavender)}
-.stat-card.amber .n{color:#B9791F}
-.stat-card.danger .n{color:var(--danger)}
-.stat-card.success .n{color:var(--success)}
+.stat-card.teal{background:linear-gradient(135deg,var(--teal),var(--teal-light));border-color:transparent;box-shadow:0 8px 20px rgba(21,94,99,.28)}
+.stat-card.lavender{background:linear-gradient(135deg,var(--lavender),var(--lavender-light));border-color:transparent;box-shadow:0 8px 20px rgba(142,124,195,.3)}
+.stat-card.amber{background:linear-gradient(135deg,var(--amber),var(--amber-light));border-color:transparent;box-shadow:0 8px 20px rgba(232,163,61,.32)}
+.stat-card.danger{background:linear-gradient(135deg,var(--danger),#E8917F);border-color:transparent;box-shadow:0 8px 20px rgba(217,108,90,.32)}
+.stat-card.success{background:linear-gradient(135deg,var(--success),#6BB596);border-color:transparent;box-shadow:0 8px 20px rgba(76,154,122,.32)}
+.stat-card.teal .n,.stat-card.lavender .n,.stat-card.amber .n,.stat-card.danger .n,.stat-card.success .n{color:#fff}
+.stat-card.teal .l,.stat-card.lavender .l,.stat-card.amber .l,.stat-card.danger .l,.stat-card.success .l{color:rgba(255,255,255,.85)}
 
 /* Cards / panels */
 .panel{background:var(--cream-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);margin-bottom:1.4rem}
