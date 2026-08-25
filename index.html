@@ -514,8 +514,16 @@ a{color:inherit;text-decoration:none}
         <button class="btn btn-primary" onclick="openExpenseModal()">+ Yeni xərc</button>
       </div>
       <div class="stats">
-        <div class="stat-card danger"><div class="n mono" id="expTotal">0 ₼</div><div class="l">Cəmi xərc (bütün vaxt)</div></div>
+        <div class="stat-card teal"><div class="n mono" id="expToday">0 ₼</div><div class="l">Bugünkü xərc</div></div>
+        <div class="stat-card lavender"><div class="n mono" id="expWeek">0 ₼</div><div class="l">Bu həftəki xərc</div></div>
         <div class="stat-card amber"><div class="n mono" id="expMonth">0 ₼</div><div class="l">Bu ayki xərc</div></div>
+        <div class="stat-card danger"><div class="n mono" id="expTotal">0 ₼</div><div class="l">Ümumi xərc</div></div>
+      </div>
+      <div class="period-tabs no-print">
+        <button class="tab-btn active" data-eperiod="all" onclick="setExpensePeriod('all')">Hamısı</button>
+        <button class="tab-btn" data-eperiod="today" onclick="setExpensePeriod('today')">Bu gün</button>
+        <button class="tab-btn" data-eperiod="week" onclick="setExpensePeriod('week')">Bu həftə</button>
+        <button class="tab-btn" data-eperiod="month" onclick="setExpensePeriod('month')">Bu ay</button>
       </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="expenseSearch" placeholder="Başlıq və ya kateqoriyaya görə axtar..." oninput="renderExpenses()"></div></div>
@@ -1457,16 +1465,40 @@ window.removeExpense = function(id){
     toast('Silindi');
   }
 }
+let expensePeriod = 'all';
+window.setExpensePeriod = function(p){
+  expensePeriod = p;
+  document.querySelectorAll('#view-expenses .period-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#view-expenses .period-tabs .tab-btn[data-eperiod="${p}"]`).classList.add('active');
+  renderExpenses();
+}
 window.renderExpenses = function(){
   const q = (document.getElementById('expenseSearch')?.value||'').toLowerCase();
   const list = document.getElementById('expensesList');
-  const entries = Object.entries(window.DB.expenses).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
-  const filtered = entries.filter(([id,e])=> !q || (e.title||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q));
-  let total=0, monthTotal=0;
-  Object.values(window.DB.expenses).forEach(e=>{ total+=Number(e.amount||0); if(e.date && isSameMonth(e.date)) monthTotal+=Number(e.amount||0); });
-  document.getElementById('expTotal').textContent = total.toFixed(2)+' ₼';
+  let todayTotal=0, weekTotal=0, monthTotal=0, total=0;
+  Object.values(window.DB.expenses).forEach(e=>{
+    const amt = Number(e.amount||0);
+    total += amt;
+    if(e.date){
+      if(e.date===todayISO()) todayTotal += amt;
+      if(isSameWeek(e.date)) weekTotal += amt;
+      if(isSameMonth(e.date)) monthTotal += amt;
+    }
+  });
+  document.getElementById('expToday').textContent = todayTotal.toFixed(2)+' ₼';
+  document.getElementById('expWeek').textContent = weekTotal.toFixed(2)+' ₼';
   document.getElementById('expMonth').textContent = monthTotal.toFixed(2)+' ₼';
-  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🧾</div><p>Hələ xərc qeydi yoxdur</p></div>`; return; }
+  document.getElementById('expTotal').textContent = total.toFixed(2)+' ₼';
+  const entries = Object.entries(window.DB.expenses).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+  const filtered = entries.filter(([id,e])=>{
+    const matchesQ = !q || (e.title||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q);
+    const matchesPeriod = expensePeriod==='all' ? true : !e.date ? false :
+      expensePeriod==='today' ? e.date===todayISO() :
+      expensePeriod==='week' ? isSameWeek(e.date) :
+      expensePeriod==='month' ? isSameMonth(e.date) : true;
+    return matchesQ && matchesPeriod;
+  });
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🧾</div><p>Bu filtrə uyğun xərc yoxdur</p></div>`; return; }
   list.innerHTML = filtered.map(([id,e],i)=>`
     <div class="item-card" style="animation-delay:${i*0.02}s;cursor:default" onclick="openExpenseModal('${id}')">
       <div class="avatar" style="background:linear-gradient(135deg,var(--danger),var(--amber))">🧾</div>
