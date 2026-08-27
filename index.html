@@ -373,6 +373,7 @@ a{color:inherit;text-decoration:none}
         <div class="stat-card lavender"><div class="n" id="statSessionsToday">0</div><div class="l">Bugünkü seans</div></div>
         <div class="stat-card amber"><div class="n" id="statSessionsWeek">0</div><div class="l">Bu həftəki seans</div></div>
         <div class="stat-card danger"><div class="n mono" id="statOwed">0 ₼</div><div class="l">Pasiyent borcu</div></div>
+        <div class="stat-card success"><div class="n mono" id="statPayToday">0 ₼</div><div class="l">Bugünkü ödəniş</div></div>
       </div>
       <div class="panel">
         <div class="panel-head"><h3>💰 Bu ayın maliyyə xülasəsi</h3><button class="btn btn-outline btn-sm" onclick="switchView('reports')">Ətraflı hesabat →</button></div>
@@ -385,6 +386,10 @@ a{color:inherit;text-decoration:none}
       <div class="panel">
         <div class="panel-head"><h3>🗓️ Bugünkü seanslar</h3></div>
         <div class="list" id="todaySessionsList"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>💳 Bugünkü ödənişlər</h3><button class="btn btn-outline btn-sm no-print" onclick="switchView('payments')">Hamısı →</button></div>
+        <div class="list" id="todayPaymentsList"></div>
       </div>
       <div class="panel">
         <div class="panel-head"><h3>🆕 Son əlavə olunan pasiyentlər</h3><button class="btn btn-outline btn-sm" onclick="switchView('patients')">Hamısı →</button></div>
@@ -527,6 +532,7 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="panel">
         <div class="panel-head"><div class="search-box"><span class="ic">🔍</span><input id="paymentSearch" placeholder="Pasiyent adına görə axtar..." oninput="renderPayments()"></div></div>
+        <div id="paymentPatientSummaryWrap"></div>
         <div class="list" id="paymentsList"></div>
       </div>
     </div>
@@ -1522,6 +1528,7 @@ window.renderPayments = function(){
   document.getElementById('payMonth').textContent = monthIn.toFixed(2)+' ₼';
   document.getElementById('payTotalIn').textContent = totalIn.toFixed(2)+' ₼';
   document.getElementById('payTotalOwed').textContent = totalOwed.toFixed(2)+' ₼';
+  renderPaymentPatientSummary(q);
   if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">💳</div><p>Bu filtrə uyğun ödəniş yoxdur</p></div>`; return; }
   list.innerHTML = filtered.map(([id,p],i)=>{
     const pat = window.DB.patients[p.patientId];
@@ -1533,6 +1540,107 @@ window.renderPayments = function(){
       <button class="btn btn-lav btn-icon" onclick="event.stopPropagation();printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
     </div>`;
   }).join('');
+}
+
+/* ============ PASİYENT ÜZRƏ SEANS+ÖDƏNİŞ XÜLASƏSİ (Ödənişlər axtarışı) ============ */
+function renderPaymentPatientSummary(q){
+  const wrap = document.getElementById('paymentPatientSummaryWrap');
+  if(!wrap) return;
+  if(!q){ wrap.innerHTML=''; return; }
+  const matches = Object.entries(window.DB.patients).filter(([id,p])=>(p.name||'').toLowerCase().includes(q)).slice(0,10);
+  if(!matches.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = matches.map(([id,p])=>{
+    const sess = Object.entries(window.DB.sessions).filter(([sid,s])=>s.patientId===id).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+    const pay = Object.entries(window.DB.payments).filter(([pid,pm])=>pm.patientId===id).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
+    const sessHtml = sess.length ? sess.map(([sid,s])=>`
+      <div class="tl-item">
+        <div class="tl-date">${fmtDate(s.date)} ${s.time||''}</div>
+        <div class="tl-body">${esc(s.type)||'-'} ${(staffName(s.staffId)||s.therapist)?'· 👤 '+esc(staffName(s.staffId)||s.therapist):''}</div>
+      </div>`).join('') : `<div class="empty"><div class="ic">🗓️</div><p>Seans qeydi yoxdur</p></div>`;
+    const payHtml = pay.length ? pay.map(([pid,pm])=>`
+      <div class="tl-item">
+        <div class="tl-date">${fmtDate(pm.date)}</div>
+        <div class="tl-body" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <span><span class="mono" style="font-weight:700">${Number(pm.amount||0).toFixed(2)} ₼</span> · ${esc(pm.type)||'-'}</span>
+          <span class="badge ${pm.status==='owed'?'badge-danger':'badge-success'}">${pm.status==='owed'?'Borc':'Ödənilib'}</span>
+        </div>
+      </div>`).join('') : `<div class="empty"><div class="ic">💳</div><p>Ödəniş qeydi yoxdur</p></div>`;
+    return `<div class="panel" style="border:1px solid var(--border);margin-bottom:1rem">
+      <div class="panel-head no-print" style="flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar">${initials(p.name)}</div>
+          <div><h3 style="margin:0">${esc(p.name)}</h3><div class="sub">🗓️ ${sess.length} seans · 💳 ${pay.length} ödəniş qeydi</div></div>
+        </div>
+        <button class="btn btn-lav btn-sm" onclick="printPatientPaymentSummary('${id}')">🖨️ Birgə çap et</button>
+      </div>
+      <div class="grid2">
+        <div><div style="font-weight:700;font-size:.82rem;margin-bottom:8px">🗓️ Seanslar (${sess.length})</div><div class="timeline">${sessHtml}</div></div>
+        <div><div style="font-weight:700;font-size:.82rem;margin-bottom:8px">💳 Ödənişlər (${pay.length})</div><div class="timeline">${payHtml}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.printPatientPaymentSummary = function(patientId){
+  const p = window.DB.patients[patientId];
+  if(!p){ toast('Pasiyent tapılmadı'); return; }
+  const sess = Object.entries(window.DB.sessions).filter(([sid,s])=>s.patientId===patientId).sort((a,b)=>(a[1].date||'').localeCompare(b[1].date||''));
+  const pay = Object.entries(window.DB.payments).filter(([pid,pm])=>pm.patientId===patientId).sort((a,b)=>(a[1].date||'').localeCompare(b[1].date||''));
+  const totalPaid = pay.filter(([id,pm])=>pm.status!=='owed').reduce((s,[id,pm])=>s+Number(pm.amount||0),0);
+  const totalOwed = pay.filter(([id,pm])=>pm.status==='owed').reduce((s,[id,pm])=>s+Number(pm.amount||0),0);
+  const logoUrl = new URL('logo.png', window.location.href).href;
+  const win = window.open('', '_blank', 'width=680,height=800');
+  if(!win){ toast('Pəncərə açıla bilmədi — brauzer bloklayıb ola bilər'); return; }
+  win.document.write(`<!DOCTYPE html><html lang="az"><head><meta charset="UTF-8"><title>${esc(p.name)} — Seans və ödəniş xülasəsi</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;padding:32px;color:#1B2622;max-width:680px;margin:0 auto}
+      .header{text-align:center;margin-bottom:24px}
+      .header img{width:70px;height:70px;border-radius:50%;object-fit:cover;margin-bottom:8px}
+      .header h1{font-size:1rem;margin:0}
+      .header p{font-size:.76rem;color:#5B6864;margin:4px 0 0}
+      h2{font-size:1.15rem;margin:0 0 4px}
+      .meta{font-size:.82rem;color:#5B6864;margin-bottom:20px}
+      h3{font-size:.9rem;margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid #E4DFD3}
+      table{width:100%;border-collapse:collapse;font-size:.84rem}
+      th{text-align:left;color:#5B6864;font-weight:600;padding:6px 4px;border-bottom:1px solid #E4DFD3}
+      td{padding:7px 4px;border-bottom:1px solid #F1EEE6}
+      .status{padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700}
+      .status.paid{background:#e3f2ec;color:#4C9A7A}
+      .status.owed{background:#fbe9e6;color:#D96C5A}
+      .totals{margin-top:16px;display:flex;gap:24px;justify-content:flex-end;font-size:.88rem}
+      .totals b{font-size:1.05rem}
+      .empty-note{color:#5B6864;font-size:.82rem;font-style:italic}
+      .footer{text-align:center;margin-top:30px;font-size:.7rem;color:#5B6864}
+      .footer a{color:#5B6864;text-decoration:none}
+      @media print{ body{padding:16px} }
+    </style></head>
+    <body>
+      <div class="header">
+        <img src="${logoUrl}" alt="loqo">
+        <h1>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</h1>
+        <p>Pasiyent üzrə seans və ödəniş xülasəsi</p>
+      </div>
+      <h2>${esc(p.name)}</h2>
+      <div class="meta">${p.phone||'Telefon yoxdur'} ${p.age?'· '+p.age+' yaş':''} ${p.gender?'· '+p.gender:''}</div>
+
+      <h3>🗓️ Seanslar (${sess.length})</h3>
+      ${sess.length ? `<table><tr><th>Tarix</th><th>Saat</th><th>Növ</th><th>Terapevt</th></tr>
+        ${sess.map(([id,s])=>`<tr><td>${fmtDate(s.date)}</td><td>${s.time||'-'}</td><td>${esc(s.type)||'-'}</td><td>${esc(staffName(s.staffId)||s.therapist)||'-'}</td></tr>`).join('')}
+      </table>` : `<div class="empty-note">Seans qeydi yoxdur</div>`}
+
+      <h3>💳 Ödənişlər (${pay.length})</h3>
+      ${pay.length ? `<table><tr><th>Tarix</th><th>Növ</th><th>Məbləğ</th><th>Status</th></tr>
+        ${pay.map(([id,pm])=>`<tr><td>${fmtDate(pm.date)}</td><td>${esc(pm.type)||'-'}</td><td>${Number(pm.amount||0).toFixed(2)} ₼</td><td><span class="status ${pm.status==='owed'?'owed':'paid'}">${pm.status==='owed'?'Borc':'Ödənilib'}</span></td></tr>`).join('')}
+      </table>` : `<div class="empty-note">Ödəniş qeydi yoxdur</div>`}
+
+      <div class="totals">
+        <div>Cəmi ödənilib: <b>${totalPaid.toFixed(2)} ₼</b></div>
+        <div>Cəmi borc: <b>${totalOwed.toFixed(2)} ₼</b></div>
+      </div>
+      <div class="footer">Çap tarixi: ${new Date().toLocaleString('az-AZ')}<br><a href="https://instagram.com/securtiy_group">By securtiy_group</a></div>
+    </body></html>`);
+  win.document.close();
+  setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 350);
 }
 
 /* ============ EXPENSES ============ */
@@ -1795,6 +1903,9 @@ function renderDashboard(){
   document.getElementById('statSessionsWeek').textContent = Object.values(sessions).filter(s=>s.date && isSameWeek(s.date)).length;
   let owed = 0; Object.values(payments).forEach(p=>{ if(p.status==='owed') owed += Number(p.amount||0); });
   document.getElementById('statOwed').textContent = owed.toFixed(2)+' ₼';
+  const todayPayEntries = Object.entries(payments).filter(([id,p])=>p.date===today);
+  const todayPaySum = todayPayEntries.filter(([id,p])=>p.status!=='owed').reduce((s,[id,p])=>s+Number(p.amount||0),0);
+  document.getElementById('statPayToday').textContent = todayPaySum.toFixed(2)+' ₼';
   document.getElementById('todayPill').textContent = '📅 ' + new Date().toLocaleDateString('az-AZ',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
   const [ms,me] = monthRangeISO();
@@ -1815,6 +1926,17 @@ function renderDashboard(){
       <span class="badge badge-teal">Bu gün</span>
     </div>`;
   }).join('') : `<div class="empty"><div class="ic">☀️</div><p>Bu gün planlanan seans yoxdur</p></div>`;
+
+  const tpl = document.getElementById('todayPaymentsList');
+  tpl.innerHTML = todayPayEntries.length ? todayPayEntries.sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).map(([id,p])=>{
+    const pat = patients[p.patientId];
+    return `<div class="item-card" onclick="openPatientDetail('${p.patientId}')">
+      <div class="avatar">${initials(pat?.name)}</div>
+      <div class="item-main"><div class="t">${esc(pat?.name)||'Silinmiş pasiyent'}</div><div class="s">${esc(p.type)||'-'} ${p.note?'· '+esc(p.note):''}</div></div>
+      <span class="mono" style="font-weight:700">${Number(p.amount||0).toFixed(2)} ₼</span>
+      <span class="badge ${p.status==='owed'?'badge-danger':'badge-success'}">${p.status==='owed'?'Borc':'Ödənilib'}</span>
+    </div>`;
+  }).join('') : `<div class="empty"><div class="ic">💳</div><p>Bu gün ödəniş qeydə alınmayıb</p></div>`;
 
   const rpl = document.getElementById('recentPatientsList');
   const recent = Object.entries(patients).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,5);
