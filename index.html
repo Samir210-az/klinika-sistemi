@@ -1435,6 +1435,21 @@ window.saveSession = function(){
   }
   closeModal('modalSession');
 }
+// Bir dəfəlik köçürmə: bugünkü, əməkdaşı təyin olunmuş seansları Terapiya Jurnalına göndərir.
+// İstifadə: brauzer konsolunda __backfillTodaySessions() yaz və Enter et. Yalnız bir dəfə işlət.
+window.__backfillTodaySessions = function(){
+  const today = todayISO();
+  const targets = Object.values(window.DB.sessions).filter(s=>s.date===today && s.staffId);
+  if(!targets.length){ console.log('Bugünkü, əməkdaşı olan seans tapılmadı.'); return; }
+  targets.forEach(s=>{
+    window.__fbAddTerapiyaSession({
+      patientId: s.patientId, staffId: s.staffId, date: s.date, time: s.time,
+      duration: null, type: s.type, status: 'planlaşdırılıb', notes: '',
+      createdAt: Date.now(), createdBy: 'Klinika Sistemi'
+    });
+  });
+  console.log(targets.length + ' seans Terapiya Jurnalına köçürüldü.');
+};
 function fillSessionStaffFilter(){
   const sel = document.getElementById('sessionStaffFilter');
   if(!sel) return;
