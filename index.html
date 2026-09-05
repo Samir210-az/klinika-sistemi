@@ -802,6 +802,7 @@ const staffRef = ref(fbDb, 'klinika/staff');
 const staffPaymentsRef = ref(fbDb, 'klinika/staffPayments');
 const expensesRef = ref(fbDb, 'klinika/expenses');
 const auditRef = ref(fbDb, 'klinika/auditLog');
+const terapiyaSessionsRef = ref(fbDb, 'terapiya/sessions');
 
 window.DB = { patients:{}, sessions:{}, payments:{}, staff:{}, staffPayments:{}, expenses:{}, auditLog:{} };
 
@@ -839,6 +840,7 @@ window.__fbAddPatient = (val) => wrapWrite(push(patientsRef, val), 'pasiyent əl
 window.__fbUpdatePatient = (id, val) => wrapWrite(update(ref(fbDb, `klinika/patients/${id}`), val), 'pasiyent yeniləmə');
 window.__fbRemovePatient = (id) => wrapWrite(remove(ref(fbDb, `klinika/patients/${id}`)), 'pasiyent silmə');
 window.__fbAddSession = (val) => wrapWrite(push(sessionsRef, val), 'seans əlavə etmə');
+window.__fbAddTerapiyaSession = (val) => wrapWrite(push(terapiyaSessionsRef, val), 'terapiya seansı əlavə etmə');
 window.__fbUpdateSession = (id, val) => wrapWrite(update(ref(fbDb, `klinika/sessions/${id}`), val), 'seans yeniləmə');
 window.__fbRemoveSession = (id) => wrapWrite(remove(ref(fbDb, `klinika/sessions/${id}`)), 'seans silmə');
 window.__fbAddPayment = (val) => wrapWrite(push(paymentsRef, val), 'ödəniş əlavə etmə');
@@ -1418,7 +1420,19 @@ window.saveSession = function(){
   const id = editSessionId.value;
   const patName = window.DB.patients[val.patientId]?.name || '';
   if(id){ window.__fbUpdateSession(id, val); logAction('Seans','Redaktə', patName, val.date); toast('Seans yeniləndi ✓'); }
-  else { window.__fbAddSession(val); logAction('Seans','Əlavə', patName, val.date); toast('Seans əlavə olundu ✓'); }
+  else {
+    window.__fbAddSession(val);
+    // Yeni seans, əməkdaş təyin olunubsa, Terapiya Jurnalına (an-seans) da avtomatik köçürülür.
+    // Mütəxəssis orada öz status/müddət/qeydlərini müstəqil doldurur — bu tərəfdəki sonrakı redaktələr həmin qeydə təsir etmir.
+    if(val.staffId){
+      window.__fbAddTerapiyaSession({
+        patientId: val.patientId, staffId: val.staffId, date: val.date, time: val.time,
+        duration: null, type: val.type, status: 'planlaşdırılıb', notes: '',
+        createdAt: Date.now(), createdBy: 'Klinika Sistemi'
+      });
+    }
+    logAction('Seans','Əlavə', patName, val.date); toast('Seans əlavə olundu ✓');
+  }
   closeModal('modalSession');
 }
 function fillSessionStaffFilter(){
