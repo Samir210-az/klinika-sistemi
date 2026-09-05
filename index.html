@@ -376,11 +376,11 @@ a{color:inherit;text-decoration:none}
         <div class="stat-card success"><div class="n mono" id="statPayToday">0 ₼</div><div class="l">Bugünkü ödəniş</div></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>💰 Bu ayın maliyyə xülasəsi</h3><button class="btn btn-outline btn-sm" onclick="switchView('reports')">Ətraflı hesabat →</button></div>
+        <div class="panel-head"><h3>💰 Bu ilin maliyyə xülasəsi</h3><button class="btn btn-outline btn-sm" onclick="switchView('reports')">Ətraflı hesabat →</button></div>
         <div class="stats" style="margin-bottom:0">
-          <div class="stat-card success"><div class="n mono" id="dashIncome">0 ₼</div><div class="l">Daxil olan (bu ay)</div></div>
-          <div class="stat-card danger"><div class="n mono" id="dashExpense">0 ₼</div><div class="l">Xərc (bu ay)</div></div>
-          <div class="stat-card teal"><div class="n mono" id="dashNet">0 ₼</div><div class="l">Xalis (bu ay)</div></div>
+          <div class="stat-card success"><div class="n mono" id="dashIncome">0 ₼</div><div class="l">Daxil olan (bu il)</div></div>
+          <div class="stat-card danger"><div class="n mono" id="dashExpense">0 ₼</div><div class="l">Xərc (bu il)</div></div>
+          <div class="stat-card teal"><div class="n mono" id="dashNet">0 ₼</div><div class="l">Xalis (bu il)</div></div>
         </div>
       </div>
       <div class="panel">
@@ -1702,21 +1702,32 @@ window.renderExpenses = function(){
   const q = (document.getElementById('expenseSearch')?.value||'').toLowerCase();
   const list = document.getElementById('expensesList');
   let todayTotal=0, weekTotal=0, monthTotal=0, total=0;
-  Object.values(window.DB.expenses).forEach(e=>{
-    const amt = Number(e.amount||0);
-    total += amt;
+
+  const expenseEntries = Object.entries(window.DB.expenses).map(([id,e])=>({
+    id, kind:'expense', date:e.date, amount:Number(e.amount||0),
+    title:e.title, category:e.category||'Digər', note:e.note||''
+  }));
+  const staffPayEntries = Object.entries(window.DB.staffPayments).map(([id,p])=>({
+    id, kind:'staffPayment', date:p.date, amount:Number(p.amount||0),
+    title:staffName(p.staffId) || 'Əməkdaş', category:'Əməkdaş ödənişi', note:p.note||'', staffId:p.staffId
+  }));
+  const allEntries = expenseEntries.concat(staffPayEntries);
+
+  allEntries.forEach(e=>{
+    total += e.amount;
     if(e.date){
-      if(e.date===todayISO()) todayTotal += amt;
-      if(isSameWeek(e.date)) weekTotal += amt;
-      if(isSameMonth(e.date)) monthTotal += amt;
+      if(e.date===todayISO()) todayTotal += e.amount;
+      if(isSameWeek(e.date)) weekTotal += e.amount;
+      if(isSameMonth(e.date)) monthTotal += e.amount;
     }
   });
   document.getElementById('expToday').textContent = todayTotal.toFixed(2)+' ₼';
   document.getElementById('expWeek').textContent = weekTotal.toFixed(2)+' ₼';
   document.getElementById('expMonth').textContent = monthTotal.toFixed(2)+' ₼';
   document.getElementById('expTotal').textContent = total.toFixed(2)+' ₼';
-  const entries = Object.entries(window.DB.expenses).sort((a,b)=>(b[1].date||'').localeCompare(a[1].date||''));
-  const filtered = entries.filter(([id,e])=>{
+
+  const entries = allEntries.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const filtered = entries.filter(e=>{
     const matchesQ = !q || (e.title||'').toLowerCase().includes(q) || (e.category||'').toLowerCase().includes(q);
     const matchesPeriod = expensePeriod==='all' ? true : !e.date ? false :
       expensePeriod==='today' ? e.date===todayISO() :
@@ -1725,13 +1736,18 @@ window.renderExpenses = function(){
     return matchesQ && matchesPeriod;
   });
   if(!filtered.length){ list.innerHTML = `<div class="empty"><div class="ic">🧾</div><p>Bu filtrə uyğun xərc yoxdur</p></div>`; return; }
-  list.innerHTML = filtered.map(([id,e],i)=>`
-    <div class="item-card" style="animation-delay:${i*0.02}s;cursor:default" onclick="openExpenseModal('${id}')">
-      <div class="avatar" style="background:linear-gradient(135deg,var(--danger),var(--amber))">🧾</div>
+  list.innerHTML = filtered.map((e,i)=>{
+    const isStaff = e.kind==='staffPayment';
+    const clickAction = isStaff ? `openStaffDetail('${e.staffId}')` : `openExpenseModal('${e.id}')`;
+    const removeAction = isStaff ? `removeStaffPayment('${e.id}')` : `removeExpense('${e.id}')`;
+    return `
+    <div class="item-card" style="animation-delay:${i*0.02}s;cursor:default" onclick="${clickAction}">
+      <div class="avatar" style="background:linear-gradient(135deg,${isStaff?'var(--teal),var(--lavender)':'var(--danger),var(--amber)'})">${isStaff?'💳':'🧾'}</div>
       <div class="item-main"><div class="t">${esc(e.title)}</div><div class="s">${fmtDate(e.date)} · ${esc(e.category)} ${e.note?'· '+esc(e.note):''}</div></div>
-      <span class="mono" style="font-weight:700;color:var(--danger)">${Number(e.amount||0).toFixed(2)} ₼</span>
-      <button class="btn btn-danger btn-icon no-print admin-only" onclick="event.stopPropagation();removeExpense('${id}')">🗑️</button>
-    </div>`).join('');
+      <span class="mono" style="font-weight:700;color:var(--danger)">${e.amount.toFixed(2)} ₼</span>
+      <button class="btn btn-danger btn-icon no-print admin-only" onclick="event.stopPropagation();${removeAction}">🗑️</button>
+    </div>`;
+  }).join('');
 }
 
 /* ============ REPORTS ============ */
@@ -1915,13 +1931,13 @@ function renderDashboard(){
   document.getElementById('statPayToday').textContent = todayPaySum.toFixed(2)+' ₼';
   document.getElementById('todayPill').textContent = '📅 ' + new Date().toLocaleDateString('az-AZ',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
-  const [ms,me] = monthRangeISO();
-  const monthIncome = Object.values(payments).filter(p=>p.status!=='owed' && p.date>=ms && p.date<=me).reduce((s,p)=>s+Number(p.amount||0),0);
-  const monthExpense = Object.values(window.DB.expenses).filter(e=>e.date>=ms && e.date<=me).reduce((s,e)=>s+Number(e.amount||0),0)
-    + Object.values(window.DB.staffPayments).filter(p=>p.date>=ms && p.date<=me).reduce((s,p)=>s+Number(p.amount||0),0);
-  document.getElementById('dashIncome').textContent = monthIncome.toFixed(2)+' ₼';
-  document.getElementById('dashExpense').textContent = monthExpense.toFixed(2)+' ₼';
-  document.getElementById('dashNet').textContent = (monthIncome-monthExpense).toFixed(2)+' ₼';
+  const [ys,ye] = yearRangeISO();
+  const yearIncome = Object.values(payments).filter(p=>p.status!=='owed' && p.date>=ys && p.date<=ye).reduce((s,p)=>s+Number(p.amount||0),0);
+  const yearExpense = Object.values(window.DB.expenses).filter(e=>e.date>=ys && e.date<=ye).reduce((s,e)=>s+Number(e.amount||0),0)
+    + Object.values(window.DB.staffPayments).filter(p=>p.date>=ys && p.date<=ye).reduce((s,p)=>s+Number(p.amount||0),0);
+  document.getElementById('dashIncome').textContent = yearIncome.toFixed(2)+' ₼';
+  document.getElementById('dashExpense').textContent = yearExpense.toFixed(2)+' ₼';
+  document.getElementById('dashNet').textContent = (yearIncome-yearExpense).toFixed(2)+' ₼';
 
   const tsl = document.getElementById('todaySessionsList');
   tsl.innerHTML = todaySess.length ? todaySess.sort((a,b)=>(a[1].time||'').localeCompare(b[1].time||'')).map(([id,s])=>{
