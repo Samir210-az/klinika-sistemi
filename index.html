@@ -1577,6 +1577,11 @@ window.renderPayments = function(){
       <button class="btn btn-lav btn-icon" onclick="event.stopPropagation();printSinglePayment('${id}')" title="Bu ödənişi çap et">🖨️</button>
     </div>`;
   }).join('');
+  if(q){
+    let paidSum=0, owedSum=0;
+    filtered.forEach(([id,p])=>{ const a=Number(p.amount||0); if(p.status==='owed') owedSum+=a; else paidSum+=a; });
+    list.innerHTML += `<div class="item-card" style="cursor:default;flex-direction:column;align-items:stretch;gap:6px;font-weight:700"><div style="display:flex;justify-content:space-between"><span>Ödənilib</span><span class="mono" style="color:var(--success)">${paidSum.toFixed(2)} ₼</span></div><div style="display:flex;justify-content:space-between"><span>Borc</span><span class="mono" style="color:var(--danger)">${owedSum.toFixed(2)} ₼</span></div></div>`;
+  }
 }
 
 /* ============ PASİYENT ÜZRƏ SEANS+ÖDƏNİŞ XÜLASƏSİ (Ödənişlər axtarışı) ============ */
@@ -1778,6 +1783,10 @@ window.renderExpenses = function(){
       <button class="btn btn-danger btn-icon no-print admin-only" onclick="event.stopPropagation();${removeAction}">🗑️</button>
     </div>`;
   }).join('');
+  if(q){
+    const sum = filtered.reduce((s,e)=>s+e.amount,0);
+    list.innerHTML += `<div class="item-card" style="cursor:default;justify-content:space-between;font-weight:700"><span>Cəmi (${filtered.length} qeyd)</span><span class="mono" style="color:var(--danger)">${sum.toFixed(2)} ₼</span></div>`;
+  }
 }
 
 /* ============ REPORTS ============ */
