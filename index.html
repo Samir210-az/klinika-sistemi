@@ -1043,7 +1043,9 @@ function fmtDate(d){
   if(isNaN(dt)) return d;
   return dt.toLocaleDateString('az-AZ',{day:'2-digit',month:'short',year:'numeric'});
 }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+// Tarixlər telefonun yerli vaxtı ilə (Bakı) — UTC ilə hesablananda gün 04:00-da dəyişirdi
+function localISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayISO(){ return localISO(new Date()); }
 function weekRange(){
   const now = new Date(); const day = now.getDay()||7;
   const monday = new Date(now); monday.setDate(now.getDate()-day+1); monday.setHours(0,0,0,0);
@@ -1062,8 +1064,8 @@ function isSameMonth(dateStr){
 }
 function monthRangeISO(){
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  const end = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  const start = localISO(new Date(now.getFullYear(), now.getMonth(), 1));
+  const end = localISO(new Date(now.getFullYear(), now.getMonth()+1, 0));
   return [start, end];
 }
 function openModal(id){ document.getElementById(id).classList.add('show'); }
@@ -1296,7 +1298,7 @@ window.sendStaffScheduleWhatsApp = function(staffId){
   const phone = normalizePhoneForWa(s.phone);
   if(phone.length<10){ toast('Telefon nömrəsi düzgün formatda deyil'); return; }
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
-  const tISO = tomorrow.toISOString().slice(0,10);
+  const tISO = localISO(tomorrow);
   const sess = Object.values(window.DB.sessions)
     .filter(x=>x.staffId===staffId && x.date===tISO)
     .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
@@ -1859,7 +1861,7 @@ function yearRangeISO(){
 function getReportRange(){
   const today = todayISO();
   if(reportPeriod==='today') return [today, today];
-  if(reportPeriod==='week'){ const [m,s]=weekRange(); return [m.toISOString().slice(0,10), s.toISOString().slice(0,10)]; }
+  if(reportPeriod==='week'){ const [m,s]=weekRange(); return [localISO(m), localISO(s)]; }
   if(reportPeriod==='month') return monthRangeISO();
   if(reportPeriod==='year') return yearRangeISO();
   if(reportPeriod==='custom') return [repStart.value||'0000-01-01', repEnd.value||'9999-12-31'];
