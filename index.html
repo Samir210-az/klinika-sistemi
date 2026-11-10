@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Klinika Sistemi | AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</title>
+<title>AN Ofis | AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</title>
 <meta name="description" content="AN Psixoloji Dəstək və Reabilitasiya Mərkəzi üçün pasiyent qeydiyyatı, seans planlaması, əməkdaş, ödəniş və hesabat sistemi.">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json?v=3">
 <script src="yenilenme.js" defer></script>
 <meta name="theme-color" content="#0B3D3F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Klinika Sistemi">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="AN Ofis">
+<link rel="apple-touch-icon" href="icon-192.png?v=3">
 <link rel="icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -313,7 +313,7 @@ a{color:inherit;text-decoration:none}
 <!-- SPLASH EKRANI -->
 <div id="splashScreen">
   <div class="splash-ks">KS</div>
-  <div class="splash-sub">Klinika Sistemi</div>
+  <div class="splash-sub">AN Ofis</div>
   <div class="splash-ring"></div>
 </div>
 
@@ -321,7 +321,7 @@ a{color:inherit;text-decoration:none}
 <div id="lockScreen">
   <div class="lock-card">
     <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 1.2rem;display:block;box-shadow:0 8px 24px rgba(21,94,99,.3);animation:pulseRing 2.4s ease-in-out infinite">
-    <h1 class="anim-title">Klinika Sistemi</h1>
+    <h1 class="anim-title">AN Ofis</h1>
     <p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p>
     <div class="field" style="text-align:left"><label>Kimsiniz?</label><select id="loginUser"><option value="admin_master">🔑 Admin (Sistem sahibi)</option></select></div>
     <input type="password" id="lockInput" inputmode="numeric" placeholder="PIN kod" maxlength="6" autocomplete="off">
@@ -338,7 +338,7 @@ a{color:inherit;text-decoration:none}
   <aside class="sidebar">
     <div class="brand">
       <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
-      <div class="brand-text"><h1 class="anim-title">Klinika Sistemi</h1><p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p></div>
+      <div class="brand-text"><h1 class="anim-title">AN Ofis</h1><p>AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</p></div>
     </div>
     <nav class="nav">
       <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')"><span class="ic">🏠</span> Ana səhifə</button>
@@ -361,7 +361,7 @@ a{color:inherit;text-decoration:none}
   <main class="main">
     <div class="mobile-topbar">
       <img src="logo.png" alt="AN Psixoloji Mərkəzi loqosu" class="brand-icon" style="object-fit:cover">
-      <div><div class="anim-title" style="font-weight:700;font-size:1.05rem;color:var(--teal-deep)">Klinika Sistemi</div><div style="font-size:.74rem;color:var(--ink);opacity:.8;font-weight:600;margin-top:1px">AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div></div>
+      <div><div class="anim-title" style="font-weight:700;font-size:1.05rem;color:var(--teal-deep)">AN Ofis</div><div style="font-size:.74rem;color:var(--ink);opacity:.8;font-weight:600;margin-top:1px">AN Psixoloji Dəstək və Reabilitasiya Mərkəzi</div></div>
     </div>
 
     <!-- DASHBOARD -->
@@ -729,7 +729,7 @@ a{color:inherit;text-decoration:none}
     </div>
     <div class="field admin-only" style="display:flex;align-items:center;gap:8px">
       <input type="checkbox" id="stKlinikaAccess" style="width:auto">
-      <label style="margin:0;text-transform:none;font-size:.85rem;font-weight:600;letter-spacing:0">Klinika Sistemi girişinə icazə (maliyyə/idarəetmə paneli — mütəxəssis işi tətbiqindən ayrıdır)</label>
+      <label style="margin:0;text-transform:none;font-size:.85rem;font-weight:600;letter-spacing:0">AN Ofis girişinə icazə (maliyyə/idarəetmə paneli — mütəxəssis işi tətbiqindən ayrıdır)</label>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal('modalStaff')">Ləğv et</button>
@@ -996,7 +996,7 @@ if('serviceWorker' in navigator){
   });
 }
 
-/* Klinika Sistemi yazısını hərf-hərf yelləyən animasiyaya çeviririk */
+/* AN Ofis yazısını hərf-hərf yelləyən animasiyaya çeviririk */
 function animateLetters(){
   document.querySelectorAll('.anim-title').forEach(el=>{
     if(el.dataset.animated) return;
